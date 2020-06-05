@@ -2,14 +2,15 @@
 // Created by 6rayWa1cher on 04.06.2020.
 //
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "cert-err58-cpp"
-
 #include <gtest/gtest.h>
 #include "../src/include/Atoms.h"
 #include "../src/include/SymbolTable.h"
 #include "../src/include/StringTable.h"
 #include "../src/include/Translator.h"
+#include <sstream>
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "cert-err58-cpp"
 
 TEST(StringTableTests, Overall) {
 	StringTable table;
@@ -18,12 +19,16 @@ TEST(StringTableTests, Overall) {
 	ASSERT_FALSE(!ptr);
 	ASSERT_EQ(std::string("0{") + string + "}", ptr->toString());
 	ASSERT_EQ(string, table[0]);
-	
+
+	ASSERT_EQ(std::string("0{") + string + "}", table.add(string)->toString());
+
 	auto string2 = "Hello world again!";
 	std::shared_ptr<StringOperand> ptr2 = table.add(string2);
 	ASSERT_FALSE(!ptr2);
 	ASSERT_EQ(std::string("1{") + string2 + "}", ptr2->toString());
 	ASSERT_EQ(string2, table[1]);
+
+	ASSERT_EQ(std::string("1{") + string2 + "}", table.add(string2)->toString());
 }
 
 TEST(SymbolTableTests, Overall) {
@@ -34,11 +39,15 @@ TEST(SymbolTableTests, Overall) {
 	ASSERT_EQ(std::string("0[") + string + "]", ptr->toString());
 	ASSERT_EQ(string, table[0]);
 
+	ASSERT_EQ(std::string("0[") + string + "]", table.add(string)->toString());
+
 	auto string2 = "meaningOfLife2";
 	std::shared_ptr<MemoryOperand> ptr2 = table.add(string2);
 	ASSERT_FALSE(!ptr2);
 	ASSERT_EQ(std::string("1[") + string2 + "]", ptr2->toString());
 	ASSERT_EQ(string2, table[1]);
+
+	ASSERT_EQ(std::string("1[") + string2 + "]", table.add(string2)->toString());
 }
 
 TEST(AtomTests, MemoryOperand) {
@@ -172,7 +181,8 @@ TEST(AtomTests, OutAtom) {
 }
 
 TEST(TranslatorTests, AddNPrint) {
-	Translator translator(std::istringstream("1 + 2"));
+	auto iss = std::istringstream("1 + 2");
+	Translator translator(iss);
 	std::ostringstream ss;
 	translator.printAtoms(ss);
 	ASSERT_EQ("", ss.str());
@@ -201,11 +211,12 @@ TEST(SymbolTableTests, allocTest) {
 	SymbolTable table;
 	auto temp = table.alloc();
 	UnaryOpAtom atom("NEG", temp, temp);
-	ASSERT_EQ("(NEG, 0[],, 0[])", atom.toString());
+	ASSERT_EQ("(NEG, 0[!temp1],, 0[!temp1])", atom.toString());
 }
 
 TEST(TranslatorTests, newLabelTest) {
-	Translator translator(std::istringstream("1 + 2"));
+	auto iss = std::istringstream("1 + 2");
+	Translator translator(iss);
 	std::ostringstream ss;
 
 	std::shared_ptr<LabelOperand> l = translator.newLabel();
@@ -221,12 +232,13 @@ TEST(TranslatorTests, newLabelTest) {
 }
 
 TEST(TranslatorTests, exceptionsTest) {
-	Translator translator(std::istringstream("1 + 2"));
+	auto iss = std::istringstream("1 + 2");
+	Translator translator(iss);
 	std::ostringstream ss;
 	try {
 		translator.lexicalError("Incorrect lexem!");
 	}
-	catch(TranslatorException &exception) {
+	catch (TranslationException& exception) {
 		ss << "Translator exception accured (" << exception.what() << ")";
 	}
 	ASSERT_EQ("Translator exception accured (Incorrect lexem!)", ss.str());
@@ -235,10 +247,12 @@ TEST(TranslatorTests, exceptionsTest) {
 	try {
 		translator.syntaxError("AAAA, GORIM!");
 	}
-	catch(TranslatorException &exception1) {
+	catch (TranslationException& exception1) {
 		ss1 << "Translator exception accured (" << exception1.what() << ")";
 	}
 	ASSERT_EQ("Translator exception accured (AAAA, GORIM!)", ss1.str());
 
 }
+
+
 #pragma clang diagnostic pop

@@ -1,7 +1,8 @@
 //
-// Created by 6rayWa1cher on 04.06.2020.
+// Created by 6rayWa1cher and Throder on 04.06.2020.
 //
 
+#include <algorithm>
 #include "../include/StringTable.h"
 
 const std::string& StringTable::operator[](const unsigned int index) const {
@@ -9,8 +10,14 @@ const std::string& StringTable::operator[](const unsigned int index) const {
 }
 
 std::shared_ptr<StringOperand> StringTable::add(const std::string& name) {
-	this->_strings.push_back(name);
-	unsigned int index = this->_strings.size() - 1;
+	auto it = std::find(this->_strings.begin(), this->_strings.end(), name);
+	unsigned int index;
+	if (it != this->_strings.end()) {
+		index = std::distance(this->_strings.begin(), it);
+	} else {
+		this->_strings.push_back(name);
+		index = this->_strings.size() - 1;
+	}
 	StringTable *st = this;
 	return std::make_shared<StringOperand>(index, st);
 }

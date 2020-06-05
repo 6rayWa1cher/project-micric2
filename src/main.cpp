@@ -1,25 +1,99 @@
 #include <iostream>
 #include <sstream>
-#include "Scanner.h"
+#include <fstream>
+#include "Translator.h"
 #include "SymbolTable.h"
 
-int main() {
-	std::cout << "Hello, World!" << std::endl;
-	std::istringstream istringstream("1 + 2");
-	Scanner scanner(istringstream);
-	Token token = scanner.getNextToken();
-	std::cout << token.value() << std::endl;
+std::string getFullFilename(std::string string) {
+	std::stringstream ss;
+	for (auto it = string.rbegin(); it != string.rend(); ++it) {
+		char c = *it;
+		if (c == '/' || c == '\\') {
+			break;
+		}
+		ss << c;
+	}
+	std::stringstream ss2;
+	auto reversed = ss.str();
+	for (auto it2 = reversed.rbegin(); it2 != reversed.rend(); ++it2) {
+		ss2 << *it2;
+	}
+	return ss2.str();
+}
 
-	SymbolTable cTable;
-	const std::string hname = "ADD";
-	std::shared_ptr<MemoryOperand> s = cTable.add("x");
-	std::shared_ptr<MemoryOperand> l = cTable.add("y");
-	std::cout << s->toString() << std::endl;
-	std::cout << l->toString() << std::endl;
-
-	BinaryOpAtom binaryAtom(hname, s, l, s);
-
-	std::cout << binaryAtom.toString() << std::endl;
-
-	return 0;
+int main(int argc, char **argv) {
+	std::ifstream ifile;
+	std::string filename = "prog.minic", input, output;
+	int i = 1;
+	std::string selfName = getFullFilename(argv[0]);
+	if (argc == 2 && (std::string(argv[1]) == "-h" || std::string(argv[1]) == "--help")) {
+		std::cout << "Usage:" << std::endl
+		          << '\t' << selfName << "(input prog.minic, output prog.minic.atom)" << std::endl
+		          << '\t' << selfName << " [options] [target]" << std::endl
+		          << '\t' << selfName << " [options] -i [target]" << std::endl
+		          << "Options:" << std::endl
+		          << '\t' << "-i file" << '\t' << "Set target file" << std::endl
+		          << '\t' << "-o file" << '\t' << "Set output file" << std::endl;
+		return 1;
+	}
+	while (i < argc) {
+		input = std::string(argv[i]);
+		if (input == "-i") {
+			if (argc <= i + 1) {
+				std::cerr << "Empty -i" << std::endl;
+				return 1;
+			}
+			filename = argv[i + 1];
+			i += 2;
+		} else if (input == "-o") {
+			if (argc <= i + 1) {
+				std::cerr << "Empty -o" << std::endl;
+				return 1;
+			}
+			output = argv[i + 1];
+			i += 2;
+		} else {
+			if (!input.empty())
+				filename = input;
+			++i;
+		}
+	}
+	ifile.open(filename);
+	if (!ifile) {
+		std::cerr << "Failed to open input file" << std::endl;
+		return 1;
+	}
+	std::cout << "Opened input: " << filename << std::endl;
+	std::ofstream ofile;
+	if (output.empty()) {
+		ofile.open(filename + ".atom");
+	} else {
+		ofile.open(output);
+	}
+	if (ofile) {
+		std::cout << "Opened output: " << (output.empty() ? filename + ".atom" : output) << std::endl;
+	}
+	if (!ofile && !output.empty()) {
+		std::cerr << "Failed to create output file" << std::endl;
+		return 1;
+	}
+	Translator translator(ifile);
+	try {
+		translator.startTranslation();
+		ifile.close();
+		translator.printAtoms(ofile);
+		ofile << std::endl;
+		ofile << "Symbol table:" << std::endl;
+		const SymbolTable& symbolTable = translator.getSymbolTable();
+		for (size_t j = 0; j < symbolTable.size(); ++j) {
+			ofile << j << '\t' << symbolTable[j] << std::endl;
+		}
+		ofile.close();
+	} catch (const TranslationException& exception) {
+		std::cerr << "Exception during compiling:" << std::endl;
+		std::cerr << exception.what();
+		ifile.close();
+		ofile.close();
+		return 2;
+	}
 }

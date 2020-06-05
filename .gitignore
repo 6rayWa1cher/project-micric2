@@ -191,3 +191,4 @@ CMakeSettings.json
 .vs/
 
 cmake-build-debug
+*.minic.atom
