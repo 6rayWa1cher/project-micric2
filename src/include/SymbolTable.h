@@ -23,10 +23,13 @@ public:
 
 private:
 	std::vector<TableRecord> _records;
+
 public:
 	const std::string& operator[](const unsigned int index) const;
 
 	std::shared_ptr<MemoryOperand> add(const std::string& name);
+
+	std::shared_ptr<MemoryOperand> alloc();
 };
 
 #endif //PROJECT_MICRIC2_SYMBOLTABLE_H

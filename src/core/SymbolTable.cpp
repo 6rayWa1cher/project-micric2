@@ -24,3 +24,7 @@ std::shared_ptr<MemoryOperand> SymbolTable::add(const std::string& name) {
 const std::string& SymbolTable::operator[](const unsigned int index) const {
 	return this->_records[index]._name;
 }
+
+std::shared_ptr<MemoryOperand> SymbolTable::alloc() {
+	return add("");
+}

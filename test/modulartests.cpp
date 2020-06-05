@@ -9,6 +9,7 @@
 #include "../src/include/Atoms.h"
 #include "../src/include/SymbolTable.h"
 #include "../src/include/StringTable.h"
+#include "../src/include/Translator.h"
 
 TEST(StringTableTests, Overall) {
 	StringTable table;
@@ -17,7 +18,7 @@ TEST(StringTableTests, Overall) {
 	ASSERT_FALSE(!ptr);
 	ASSERT_EQ(std::string("0{") + string + "}", ptr->toString());
 	ASSERT_EQ(string, table[0]);
-
+	
 	auto string2 = "Hello world again!";
 	std::shared_ptr<StringOperand> ptr2 = table.add(string2);
 	ASSERT_FALSE(!ptr2);
@@ -73,7 +74,171 @@ TEST(AtomTests, StringOperand) {
 
 TEST(AtomTests, LabelOperand) {
 	LabelOperand labelOperand(2020);
-	ASSERT_EQ("2020", labelOperand.toString());
+	ASSERT_EQ("L2020", labelOperand.toString());
 }
 
+
+TEST(AtomTests, BinaryOpAtom) {
+	SymbolTable cTable;
+	const std::string addName = "ADD";
+	std::shared_ptr<MemoryOperand> x = cTable.add("x");
+	std::shared_ptr<NumberOperand> n = std::make_shared<NumberOperand>(10);
+	std::shared_ptr<MemoryOperand> z = cTable.add("z");
+	BinaryOpAtom binaryAtomAdd(addName, x, n, z);
+	ASSERT_EQ("(ADD, 0[x], `10`, 1[z])", binaryAtomAdd.toString());
+
+	const std::string subName = "SUB";
+	n = std::make_shared<NumberOperand>(250);
+	BinaryOpAtom binaryAtomSub(subName, n, z, x);
+	ASSERT_EQ("(SUB, `250`, 1[z], 0[x])", binaryAtomSub.toString());
+
+	const std::string mulName = "MUL";
+	BinaryOpAtom binaryAtomMul(mulName, x, x, z);
+	ASSERT_EQ("(MUL, 0[x], 0[x], 1[z])", binaryAtomMul.toString());
+
+	const std::string divName = "DIV";
+	n = std::make_shared<NumberOperand>(2);
+	BinaryOpAtom binaryAtomDiv(divName, z, n, x);
+	ASSERT_EQ("(DIV, 1[z], `2`, 0[x])", binaryAtomDiv.toString());
+
+	const std::string orName = "OR";
+	BinaryOpAtom binaryAtomOr(orName, x, z, x);
+	ASSERT_EQ("(OR, 0[x], 1[z], 0[x])", binaryAtomOr.toString());
+
+	const std::string andName = "AND";
+	BinaryOpAtom binaryAtomAnd(andName, x, z, x);
+	ASSERT_EQ("(AND, 0[x], 1[z], 0[x])", binaryAtomAnd.toString());
+}
+
+TEST(AtomTests, UnaryOpAtom) {
+	SymbolTable cTable;
+	const std::string negName = "NEG";
+	std::shared_ptr<MemoryOperand> x = cTable.add("x");
+	std::shared_ptr<MemoryOperand> z = cTable.add("z");
+	UnaryOpAtom unaryAtomNeg(negName, x, z);
+	ASSERT_EQ("(NEG, 0[x],, 1[z])", unaryAtomNeg.toString());
+
+	const std::string notName = "NOT";
+	UnaryOpAtom unaryAtomNot(notName, x, x);
+	ASSERT_EQ("(NOT, 0[x],, 0[x])", unaryAtomNot.toString());
+
+	const std::string movName = "MOV";
+	UnaryOpAtom unaryAtomMov(movName, x, z);
+	ASSERT_EQ("(MOV, 0[x],, 1[z])", unaryAtomMov.toString());
+}
+
+TEST(AtomTests, ConditionalJumpAtom) {
+	SymbolTable cTable;
+	const std::string eqName = "EQ";
+	std::shared_ptr<MemoryOperand> x = cTable.add("x");
+	std::shared_ptr<MemoryOperand> z = cTable.add("z");
+	std::shared_ptr<LabelOperand> l = std::make_shared<LabelOperand>(10);
+	ConditionalJumpAtom conditionalJumpAtomEq(eqName, x, z, l);
+	ASSERT_EQ("(EQ, 0[x], 1[z], L10)", conditionalJumpAtomEq.toString());
+
+	const std::string neName = "NE";
+	ConditionalJumpAtom conditionalJumpAtomNe(neName, x, z, l);
+	ASSERT_EQ("(NE, 0[x], 1[z], L10)", conditionalJumpAtomNe.toString());
+
+	const std::string gtName = "GT";
+	ConditionalJumpAtom conditionalJumpAtomMov(gtName, z, x, l);
+	ASSERT_EQ("(GT, 1[z], 0[x], L10)", conditionalJumpAtomMov.toString());
+}
+
+TEST(AtomTests, JumpAtom) {
+	std::shared_ptr<LabelOperand> l = std::make_shared<LabelOperand>(10);
+	JumpAtom jumpAtom(l);
+	ASSERT_EQ("(JMP,,, L10)", jumpAtom.toString());
+}
+
+TEST(AtomTests, LabelAtom) {
+	std::shared_ptr<LabelOperand> l = std::make_shared<LabelOperand>(3);
+	LabelAtom labelAtom(l);
+	ASSERT_EQ("(LBL,,, L3)", labelAtom.toString());
+}
+
+TEST(AtomTests, InAtom) {
+	SymbolTable table;
+	std::shared_ptr<MemoryOperand> x = table.add("x");
+	InAtom inAtom(x);
+	ASSERT_EQ("(IN,,, 0[x])", inAtom.toString());
+}
+
+TEST(AtomTests, OutAtom) {
+	SymbolTable table;
+	std::shared_ptr<MemoryOperand> x = table.add("x");
+	OutAtom outAtom(x);
+	ASSERT_EQ("(OUT,,, 0[x])", outAtom.toString());
+}
+
+TEST(TranslatorTests, AddNPrint) {
+	Translator translator(std::istringstream("1 + 2"));
+	std::ostringstream ss;
+	translator.printAtoms(ss);
+	ASSERT_EQ("", ss.str());
+
+	SymbolTable table;
+	std::shared_ptr<MemoryOperand> x = table.add("x");
+	std::shared_ptr<MemoryOperand> z = table.add("z");
+	std::shared_ptr<LabelOperand> l = std::make_shared<LabelOperand>(10);
+	std::shared_ptr<ConditionalJumpAtom> conditionalJumpAtomEq = std::make_shared<ConditionalJumpAtom>("EQ", x, z, l);
+
+	translator.generateAtoms(conditionalJumpAtomEq);
+
+	x = table.add("u");
+	z = table.add("v");
+	std::shared_ptr<BinaryOpAtom> binaryAtomAdd = std::make_shared<BinaryOpAtom>("ADD", x, z, z);
+
+	translator.generateAtoms(binaryAtomAdd);
+
+	ss.clear();
+
+	translator.printAtoms(ss);
+	ASSERT_EQ("(EQ, 0[x], 1[z], L10)\n(ADD, 2[u], 3[v], 3[v])\n", ss.str());
+}
+
+TEST(SymbolTableTests, allocTest) {
+	SymbolTable table;
+	auto temp = table.alloc();
+	UnaryOpAtom atom("NEG", temp, temp);
+	ASSERT_EQ("(NEG, 0[],, 0[])", atom.toString());
+}
+
+TEST(TranslatorTests, newLabelTest) {
+	Translator translator(std::istringstream("1 + 2"));
+	std::ostringstream ss;
+
+	std::shared_ptr<LabelOperand> l = translator.newLabel();
+	std::shared_ptr<LabelAtom> labelAtom = std::make_shared<LabelAtom>(l);
+	translator.generateAtoms(labelAtom);
+
+	l = translator.newLabel();
+	labelAtom = std::make_shared<LabelAtom>(l);
+	translator.generateAtoms(labelAtom);
+
+	translator.printAtoms(ss);
+	ASSERT_EQ("(LBL,,, L0)\n(LBL,,, L1)\n", ss.str());
+}
+
+TEST(TranslatorTests, exceptionsTest) {
+	Translator translator(std::istringstream("1 + 2"));
+	std::ostringstream ss;
+	try {
+		translator.lexicalError("Incorrect lexem!");
+	}
+	catch(TranslatorException &exception) {
+		ss << "Translator exception accured (" << exception.what() << ")";
+	}
+	ASSERT_EQ("Translator exception accured (Incorrect lexem!)", ss.str());
+	std::ostringstream ss1;
+
+	try {
+		translator.syntaxError("AAAA, GORIM!");
+	}
+	catch(TranslatorException &exception1) {
+		ss1 << "Translator exception accured (" << exception1.what() << ")";
+	}
+	ASSERT_EQ("Translator exception accured (AAAA, GORIM!)", ss1.str());
+
+}
 #pragma clang diagnostic pop
