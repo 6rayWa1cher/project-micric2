@@ -12,7 +12,7 @@
 #include <queue>
 
 class Translator {
-private:
+protected:
 	std::vector<std::shared_ptr<Atom>> _atoms;
 	SymbolTable _symbolTable;
 	StringTable _stringTable;
@@ -25,7 +25,7 @@ private:
 public:
 	Translator(std::istream& inputStream);
 
-	void startTranslation();
+	virtual void startTranslation();
 
 	const SymbolTable& getSymbolTable() const;
 
@@ -43,7 +43,7 @@ public:
 
 	const std::deque<Token>& getLastLexems() const;
 
-private:
+protected:
 	std::shared_ptr<RValue> E();
 
 	std::shared_ptr<RValue> E1();
