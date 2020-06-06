@@ -33,6 +33,8 @@ public:
 
 	void printAtoms(std::ostream& stream);
 
+	void printSymbolTable(std::ostream& stream);
+
 	void generateAtoms(std::shared_ptr<Atom> atom);
 
 	std::shared_ptr<LabelOperand> newLabel();

@@ -50,6 +50,17 @@ TEST(SymbolTableTests, Overall) {
 	ASSERT_EQ(std::string("1[") + string2 + "]", table.add(string2)->toString());
 }
 
+TEST(SymbolTableTests, PrintTableTest) {
+	const std::string expected = "SYMBOL TABLE\n----------------------------------------------------------------\ncode    name    kind    type    len     init    scope   offset  \n0       a       unknown unknown -1      0       -1      -1      \n1       b       unknown unknown -1      0       -1      -1      \n2       !temp1  unknown unknown -1      0       -1      -1      \n";
+	SymbolTable symbolTable;
+	symbolTable.add("a");
+	symbolTable.add("b");
+	symbolTable.add("!temp1");
+	std::ostringstream ss;
+	symbolTable.printSymbolTable(ss);
+	ASSERT_EQ(expected, ss.str());
+}
+
 TEST(AtomTests, MemoryOperand) {
 	SymbolTable table;
 	auto string = "some symbol";
@@ -180,6 +191,28 @@ TEST(AtomTests, OutAtom) {
 	ASSERT_EQ("(OUT,,, 0[x])", outAtom.toString());
 }
 
+TEST(AtomTests, CallAtom) {
+	SymbolTable table;
+	std::shared_ptr<MemoryOperand> f = table.add("func1");
+	std::shared_ptr<MemoryOperand> x = table.add("x");
+	CallAtom callAtom(f, x);
+	ASSERT_EQ("(CALL, 0[func1],, 1[x])", callAtom.toString());
+}
+
+TEST(AtomTests, RetAtom) {
+	SymbolTable table;
+	std::shared_ptr<MemoryOperand> v = table.add("g");
+	RetAtom retAtom(v);
+	ASSERT_EQ("(RET,,, 0[g])", retAtom.toString());
+}
+
+TEST(AtomTests, ParamAtom) {
+	SymbolTable table;
+	std::shared_ptr<MemoryOperand> v = table.add("y");
+	ParamAtom paramAtom(v);
+	ASSERT_EQ("(PARAM,,, 0[y])", paramAtom.toString());
+}
+
 TEST(TranslatorTests, AddNPrint) {
 	auto iss = std::istringstream("1 + 2");
 	Translator translator(iss);
@@ -251,7 +284,6 @@ TEST(TranslatorTests, exceptionsTest) {
 		ss1 << "Translator exception accured (" << exception1.what() << ")";
 	}
 	ASSERT_EQ("Translator exception accured (AAAA, GORIM!)", ss1.str());
-
 }
 
 
