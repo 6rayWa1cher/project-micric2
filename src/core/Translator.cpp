@@ -9,7 +9,7 @@
 
 
 Translator::Translator(std::istream& inputStream) : _scanner(Scanner(inputStream)) {
-	labelCount = 0;
+	_labelCount = 0;
 }
 
 void Translator::printAtoms(std::ostream& stream) {
@@ -23,8 +23,8 @@ void Translator::generateAtoms(std::shared_ptr<Atom> atom) {
 }
 
 std::shared_ptr<LabelOperand> Translator::newLabel() {
-	auto label = std::make_shared<LabelOperand>(labelCount);
-	labelCount++;
+	auto label = std::make_shared<LabelOperand>(_labelCount);
+	_labelCount++;
 	return label;
 }
 
@@ -38,6 +38,10 @@ void Translator::lexicalError(const std::string& message) {
 
 void Translator::getAndCheckLexem(bool eofAcceptable) {
 	_currentLexem = _scanner.getNextToken();
+	_lastLexems.push_back(_currentLexem);
+	while (_lastLexems.back().type() != LexemType::eof && _lastLexems.size() > 3) {
+		_lastLexems.pop_front();
+	}
 	if (_currentLexem.type() == LexemType::error) {
 		lexicalError(_currentLexem.toString());
 	}
@@ -45,6 +49,14 @@ void Translator::getAndCheckLexem(bool eofAcceptable) {
 		syntaxError("Reached EOF before end of a syntax analysis");
 	}
 }
+
+void Translator::pushBackLexem() {
+	_scanner.pushBack(_currentLexem);
+	if (_lastLexems.back() == _currentLexem) {
+		_lastLexems.pop_back();
+	}
+}
+
 
 std::shared_ptr<RValue> Translator::E() {
 	auto q = E7();
@@ -87,7 +99,7 @@ std::shared_ptr<RValue> Translator::E7_(std::shared_ptr<RValue> p) {
 		}
 		return t;
 	} else { // 4
-		_scanner.pushBack(_currentLexem);
+		pushBackLexem();
 		return p;
 	}
 }
@@ -124,7 +136,7 @@ std::shared_ptr<RValue> Translator::E6_(std::shared_ptr<RValue> p) {
 		}
 		return t;
 	} else { // 7
-		_scanner.pushBack(_currentLexem);
+		pushBackLexem();
 		return p;
 	}
 }
@@ -185,7 +197,7 @@ std::shared_ptr<RValue> Translator::E5_(std::shared_ptr<RValue> p) {
 		generateAtoms(std::make_shared<LabelAtom>(l));
 		return s;
 	} else { // 14
-		_scanner.pushBack(_currentLexem);
+		pushBackLexem();
 		return p;
 	}
 }
@@ -236,7 +248,7 @@ std::shared_ptr<RValue> Translator::E4_(std::shared_ptr<RValue> p) {
 		}
 		return t;
 	} else {// 18
-		_scanner.pushBack(_currentLexem);
+		pushBackLexem();
 		return p;
 	}
 }
@@ -270,7 +282,7 @@ std::shared_ptr<RValue> Translator::E3_(std::shared_ptr<RValue> p) {
 		auto t = E3_(s);
 		return t;
 	} else { // 21
-		_scanner.pushBack(_currentLexem);
+		pushBackLexem();
 		return p;
 	}
 }
@@ -287,7 +299,7 @@ std::shared_ptr<RValue> Translator::E2() {
 		generateAtoms(std::make_shared<UnaryOpAtom>("NOT", q, r));
 		return r;
 	} else { // 23
-		_scanner.pushBack(_currentLexem);
+		pushBackLexem();
 		return E1();
 	}
 }
@@ -347,7 +359,7 @@ std::shared_ptr<RValue> Translator::E1_(const std::string& p) {
 		return r;
 	}
 	// TODO: 30
-	_scanner.pushBack(_currentLexem);
+	pushBackLexem();
 	return _symbolTable.add(p);
 }
 
@@ -366,6 +378,11 @@ const SymbolTable& Translator::getSymbolTable() const {
 const StringTable& Translator::getStringTable() const {
 	return _stringTable;
 }
+
+const std::deque<Token>& Translator::getLastLexems() const {
+	return _lastLexems;
+}
+
 
 TranslationException::TranslationException(std::string error) : _error(error) {}
 

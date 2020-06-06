@@ -9,18 +9,19 @@
 #include "SymbolTable.h"
 #include "Scanner.h"
 #include <exception>
+#include <queue>
 
 class Translator {
 private:
 	std::vector<std::shared_ptr<Atom>> _atoms;
 	SymbolTable _symbolTable;
-
-private:
 	StringTable _stringTable;
 	Scanner _scanner;
 	Token _currentLexem;
 
-	size_t labelCount;
+	std::deque<Token> _lastLexems;
+
+	size_t _labelCount;
 public:
 	Translator(std::istream& inputStream);
 
@@ -39,6 +40,8 @@ public:
 	void syntaxError(const std::string& message);
 
 	void lexicalError(const std::string& message);
+
+	const std::deque<Token>& getLastLexems() const;
 
 private:
 	std::shared_ptr<RValue> E();
@@ -70,6 +73,8 @@ private:
 	std::shared_ptr<RValue> E7_(std::shared_ptr<RValue> p);
 
 	void getAndCheckLexem(bool eofAcceptable = false);
+
+	void pushBackLexem();
 };
 
 class TranslationException : public std::exception {
