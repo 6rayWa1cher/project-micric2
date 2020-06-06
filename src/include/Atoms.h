@@ -147,4 +147,32 @@ public:
 	std::string toString() const override;
 };
 
+class CallAtom : public Atom {
+private:
+	std::shared_ptr<MemoryOperand> _function;
+	std::shared_ptr<MemoryOperand> _result;
+public:
+	CallAtom(std::shared_ptr<MemoryOperand> function, std::shared_ptr<MemoryOperand> result);
+
+	std::string toString() const override;
+};
+
+class RetAtom : public Atom {
+private:
+	std::shared_ptr<RValue> _value;
+public:
+	RetAtom(std::shared_ptr<RValue> value);
+
+	std::string toString() const override;
+};
+
+class ParamAtom : public Atom {
+private:
+	std::shared_ptr<RValue> _value;
+public:
+	ParamAtom(std::shared_ptr<RValue> value);
+
+	std::string toString() const override;
+};
+
 #endif //PROJECT_MICRIC2_ATOMS_H

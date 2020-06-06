@@ -18,6 +18,10 @@ void Translator::printAtoms(std::ostream& stream) {
 	}
 }
 
+void Translator::printSymbolTable(std::ostream& stream) {
+	_symbolTable.printSymbolTable(stream);
+}
+
 void Translator::generateAtoms(std::shared_ptr<Atom> atom) {
 	_atoms.push_back(atom);
 }
@@ -39,6 +43,7 @@ void Translator::lexicalError(const std::string& message) {
 void Translator::getAndCheckLexem(bool eofAcceptable) {
 	_currentLexem = _scanner.getNextToken();
 	_lastLexems.push_back(_currentLexem);
+	if (_lastLexems.size() == 4) _lastLexems.pop_front();
 	while (_lastLexems.back().type() != LexemType::eof && _lastLexems.size() > 3) {
 		_lastLexems.pop_front();
 	}

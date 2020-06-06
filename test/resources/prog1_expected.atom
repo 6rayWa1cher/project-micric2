@@ -15,15 +15,15 @@
 (LBL,,, L1)
 
 Symbol table:
-0   a
-1   b
-2   !temp1
-3   !temp2
-4   !temp3
-5   c
-6   !temp4
-7   !temp5
-8   d
-9   !temp6
-10  !temp7
-11  !temp8
+0	a
+1	b
+2	!temp1
+3	!temp2
+4	!temp3
+5	c
+6	!temp4
+7	!temp5
+8	d
+9	!temp6
+10	!temp7
+11	!temp8
