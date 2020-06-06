@@ -3,6 +3,9 @@
 //
 
 #include "../include/Atoms.h"
+
+#include <utility>
+
 #include "../include/StringTable.h"
 #include "../include/SymbolTable.h"
 
@@ -10,8 +13,8 @@ Operand::Operand() = default;
 
 RValue::RValue() = default;
 
-MemoryOperand::MemoryOperand(unsigned int index, const SymbolTable * symbolTable) : _index(index),
-_symbolTable(symbolTable) {
+MemoryOperand::MemoryOperand(unsigned int index, const SymbolTable *symbolTable) : _index(index),
+                                                                                   _symbolTable(symbolTable) {
 
 }
 
@@ -40,13 +43,13 @@ std::string LabelOperand::toString() const {
 
 Atom::Atom() = default;
 
-BinaryOpAtom::BinaryOpAtom(const std::string &name,
-								 std::shared_ptr<RValue> left,
-								 std::shared_ptr<RValue> right,
-								 std::shared_ptr<MemoryOperand> result) : _name(name),
-																		  _left(left),
-																		  _right(right),
-																		  _result(result) {}
+BinaryOpAtom::BinaryOpAtom(std::string name,
+                           std::shared_ptr<RValue> left,
+                           std::shared_ptr<RValue> right,
+                           std::shared_ptr<MemoryOperand> result) : _name(std::move(name)),
+                                                                    _left(std::move(left)),
+                                                                    _right(std::move(right)),
+                                                                    _result(std::move(result)) {}
 
 std::string BinaryOpAtom::toString() const {
 	return "(" + _name + ", " + _left->toString() + ", " +
@@ -54,48 +57,48 @@ std::string BinaryOpAtom::toString() const {
 								_result->toString() + ")";
 }
 
-UnaryOpAtom::UnaryOpAtom(const std::string & name,
-							   std::shared_ptr<RValue> operand,
-							   std::shared_ptr<MemoryOperand> result) : _name(name),
-																	    _operand(operand),
-																	    _result(result) {}
+UnaryOpAtom::UnaryOpAtom(std::string name,
+                         std::shared_ptr<RValue> operand,
+                         std::shared_ptr<MemoryOperand> result) : _name(std::move(name)),
+                                                                  _operand(std::move(operand)),
+                                                                  _result(std::move(result)) {}
 
 std::string UnaryOpAtom::toString() const {
 	return "(" + _name + ", " + _operand->toString() + ",, " +
 								_result->toString() + ")";
 }
 
-OutAtom::OutAtom(std::shared_ptr<Operand> value) : _value(value) {}
+OutAtom::OutAtom(std::shared_ptr<Operand> value) : _value(std::move(value)) {}
 
 std::string OutAtom::toString() const {
 	return "(OUT,,, " + _value->toString() + ")";
 }
 
-InAtom::InAtom(std::shared_ptr<MemoryOperand> result) : _result(result) {}
+InAtom::InAtom(std::shared_ptr<MemoryOperand> result) : _result(std::move(result)) {}
 
 std::string InAtom::toString() const {
 	return "(IN,,, " + _result->toString() + ")";
 }
 
-LabelAtom::LabelAtom(std::shared_ptr<LabelOperand> label) : _label(label) {}
+LabelAtom::LabelAtom(std::shared_ptr<LabelOperand> label) : _label(std::move(label)) {}
 
 std::string LabelAtom::toString() const {
 	return "(LBL,,, " + _label->toString() + ")";
 }
 
-JumpAtom::JumpAtom(std::shared_ptr<LabelOperand> label) : _label(label) {}
+JumpAtom::JumpAtom(std::shared_ptr<LabelOperand> label) : _label(std::move(label)) {}
 
 std::string JumpAtom::toString() const {
 	return "(JMP,,, " + _label->toString() + ")";
 }
 
-ConditionalJumpAtom::ConditionalJumpAtom(const std::string & condition,
-											   std::shared_ptr<RValue> left,
-											   std::shared_ptr<RValue> right,
-											   std::shared_ptr<LabelOperand> label) : _condition(condition),
-																				 	  _left(left),
-																					  _right(right),
-																					  _label(label) {}
+ConditionalJumpAtom::ConditionalJumpAtom(std::string condition,
+                                         std::shared_ptr<RValue> left,
+                                         std::shared_ptr<RValue> right,
+                                         std::shared_ptr<LabelOperand> label) : _condition(std::move(condition)),
+                                                                                _left(std::move(left)),
+                                                                                _right(std::move(right)),
+                                                                                _label(std::move(label)) {}
 
 std::string ConditionalJumpAtom::toString() const {
 	return "(" + _condition + ", " + _left->toString() + ", " +
