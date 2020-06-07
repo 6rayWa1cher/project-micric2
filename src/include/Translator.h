@@ -13,7 +13,7 @@
 
 class Translator {
 protected:
-	std::vector<std::shared_ptr<Atom>> _atoms;
+	std::map<Scope, std::vector<std::shared_ptr<Atom>>> _atoms;
 	SymbolTable _symbolTable;
 	StringTable _stringTable;
 	Scanner _scanner;
@@ -35,7 +35,7 @@ public:
 
 	void printSymbolTable(std::ostream& stream);
 
-	void generateAtoms(std::shared_ptr<Atom> atom);
+	void generateAtoms(Scope scope, std::shared_ptr<Atom> atom);
 
 	std::shared_ptr<LabelOperand> newLabel();
 
@@ -46,35 +46,39 @@ public:
 	const std::deque<Token>& getLastLexems() const;
 
 protected:
-	std::shared_ptr<RValue> E();
+	std::shared_ptr<RValue> E(Scope scope);
 
-	std::shared_ptr<RValue> E1();
+	std::shared_ptr<RValue> E1(Scope scope);
 
-	std::shared_ptr<RValue> E1_(const std::string& p);
+	std::shared_ptr<RValue> E1_(Scope scope, const std::string& p);
 
-	std::shared_ptr<RValue> E2();
+	std::shared_ptr<RValue> E2(Scope scope);
 
-	std::shared_ptr<RValue> E3();
+	std::shared_ptr<RValue> E3(Scope scope);
 
-	std::shared_ptr<RValue> E3_(std::shared_ptr<RValue> p);
+	std::shared_ptr<RValue> E3_(Scope scope, std::shared_ptr<RValue> p);
 
-	std::shared_ptr<RValue> E4();
+	std::shared_ptr<RValue> E4(Scope scope);
 
-	std::shared_ptr<RValue> E4_(std::shared_ptr<RValue> p);
+	std::shared_ptr<RValue> E4_(Scope scope, std::shared_ptr<RValue> p);
 
-	std::shared_ptr<RValue> E5();
+	std::shared_ptr<RValue> E5(Scope scope);
 
-	std::shared_ptr<RValue> E5_(std::shared_ptr<RValue> p);
+	std::shared_ptr<RValue> E5_(Scope scope, std::shared_ptr<RValue> p);
 
-	std::shared_ptr<RValue> E6();
+	std::shared_ptr<RValue> E6(Scope scope);
 
-	std::shared_ptr<RValue> E6_(std::shared_ptr<RValue> p);
+	std::shared_ptr<RValue> E6_(Scope scope, std::shared_ptr<RValue> p);
 
-	std::shared_ptr<RValue> E7();
+	std::shared_ptr<RValue> E7(Scope scope);
 
-	std::shared_ptr<RValue> E7_(std::shared_ptr<RValue> p);
+	std::shared_ptr<RValue> E7_(Scope scope, std::shared_ptr<RValue> p);
 
 	void getAndCheckLexem(bool eofAcceptable = false);
+
+	std::shared_ptr<MemoryOperand> checkVar(const Scope scope, const std::string& name);
+
+	std::shared_ptr<MemoryOperand> checkFunc(const std::string& name, int len);
 
 	void pushBackLexem();
 };

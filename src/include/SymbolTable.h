@@ -12,7 +12,7 @@
 
 typedef int Scope;
 
-const Scope GlobalScope = -1;
+const Scope GLOBAL_SCOPE = -1;
 
 class SymbolTable {
 public:
@@ -30,7 +30,7 @@ public:
 		RecordType _type = RecordType::unknown;
 		int _len = -1;
 		int _init = 0;
-		Scope _scope = GlobalScope;
+		Scope _scope = GLOBAL_SCOPE;
 		int _offset = -1;
 
 
@@ -48,11 +48,22 @@ public:
 
 	size_t size() const;
 
-	std::shared_ptr<MemoryOperand> add(const std::string& name);
+	std::shared_ptr<MemoryOperand> addVar(const std::string& name,
+	                                      const Scope scope, TableRecord::RecordType type,
+	                                      int init = 0);
 
-	std::shared_ptr<MemoryOperand> alloc();
+	std::shared_ptr<MemoryOperand> addFunc(const std::string& name, TableRecord::RecordType type, int len);
+
+	virtual std::shared_ptr<MemoryOperand> checkVar(const Scope scope, const std::string& name);
+
+	std::shared_ptr<MemoryOperand> checkFunc(const std::string& name, int len);
+
+	std::shared_ptr<MemoryOperand> alloc(Scope scope);
 
 	void printSymbolTable(std::ostream& stream);
+
+private:
+	int64_t findRecord(const std::string& name, Scope scope) const;
 };
 
 #endif //PROJECT_MICRIC2_SYMBOLTABLE_H

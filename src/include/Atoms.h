@@ -26,12 +26,16 @@ public:
 
 class MemoryOperand : public RValue {
 protected:
-	unsigned int _index;
+	size_t _index;
 	const SymbolTable *_symbolTable;
 public:
-	MemoryOperand(unsigned int index, const SymbolTable *symbolTable);
+	MemoryOperand(size_t index, const SymbolTable *symbolTable);
 
 	std::string toString() const override;
+
+	bool operator==(const MemoryOperand& rhs) const;
+
+	bool operator!=(const MemoryOperand& rhs) const;
 };
 
 class NumberOperand : public RValue {
@@ -45,10 +49,10 @@ public:
 
 class StringOperand : public Operand {
 protected:
-	unsigned int _index;
+	size_t _index;
 	const StringTable *_stringTable;
 public:
-	StringOperand(unsigned int index, const StringTable *stringTable);
+	StringOperand(size_t index, const StringTable *stringTable);
 
 	std::string toString() const override;
 };

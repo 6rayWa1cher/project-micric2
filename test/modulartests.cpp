@@ -34,28 +34,36 @@ TEST(StringTableTests, Overall) {
 TEST(SymbolTableTests, Overall) {
 	SymbolTable table;
 	auto string = "meaningOfLife";
-	std::shared_ptr<MemoryOperand> ptr = table.add(string);
+	std::shared_ptr<MemoryOperand> ptr = table.addVar(string, 42, SymbolTable::TableRecord::RecordType::integer);
 	ASSERT_FALSE(!ptr);
 	ASSERT_EQ(std::string("0[") + string + "]", ptr->toString());
 	ASSERT_EQ(string, table[0]);
-
-	ASSERT_EQ(std::string("0[") + string + "]", table.add(string)->toString());
+	ASSERT_NE(nullptr, table.checkVar(42, string));
+	ASSERT_EQ(MemoryOperand(0, &table), *table.checkVar(42, string));
+	ASSERT_EQ(nullptr, table.addVar(string, 42, SymbolTable::TableRecord::RecordType::integer));
 
 	auto string2 = "meaningOfLife2";
-	std::shared_ptr<MemoryOperand> ptr2 = table.add(string2);
+	std::shared_ptr<MemoryOperand> ptr2 = table.addFunc(string2, SymbolTable::TableRecord::RecordType::chr, 3);
 	ASSERT_FALSE(!ptr2);
 	ASSERT_EQ(std::string("1[") + string2 + "]", ptr2->toString());
 	ASSERT_EQ(string2, table[1]);
-
-	ASSERT_EQ(std::string("1[") + string2 + "]", table.add(string2)->toString());
+	ASSERT_NE(nullptr, table.checkFunc(string2, 3));
+	ASSERT_EQ(MemoryOperand(1, &table), *table.checkFunc(string2, 3));
+	ASSERT_EQ(nullptr, table.addFunc(string2, SymbolTable::TableRecord::RecordType::chr, 3));
 }
 
 TEST(SymbolTableTests, PrintTableTest) {
-	const std::string expected = "SYMBOL TABLE\n----------------------------------------------------------------\ncode    name    kind    type    len     init    scope   offset  \n0       a       unknown unknown -1      0       -1      -1      \n1       b       unknown unknown -1      0       -1      -1      \n2       !temp1  unknown unknown -1      0       -1      -1      \n";
+	const std::string expected =
+			"SYMBOL TABLE\n"
+			"----------------------------------------------------------------\n"
+			"code    name    kind    type    len     init    scope   offset  \n"
+			"0       a       var     integer -1      0       -1      -1      \n"
+			"1       b       var     chr     -1      0       -1      -1      \n"
+			"2       !temp1  var     integer -1      0       -1      -1      \n";
 	SymbolTable symbolTable;
-	symbolTable.add("a");
-	symbolTable.add("b");
-	symbolTable.add("!temp1");
+	symbolTable.addVar("a", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
+	symbolTable.addVar("b", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::chr);
+	symbolTable.alloc(GLOBAL_SCOPE);
 	std::ostringstream ss;
 	symbolTable.printSymbolTable(ss);
 	ASSERT_EQ(expected, ss.str());
@@ -64,12 +72,12 @@ TEST(SymbolTableTests, PrintTableTest) {
 TEST(AtomTests, MemoryOperand) {
 	SymbolTable table;
 	auto string = "some symbol";
-	table.add(string);
+	table.addVar(string, GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
 	MemoryOperand memoryOperand(0, &table);
 	ASSERT_EQ(std::string("0[") + string + "]", memoryOperand.toString());
 
 	auto string2 = "some symbol2";
-	table.add(string2);
+	table.addVar(string2, GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
 	MemoryOperand memoryOperand2(1, &table);
 	ASSERT_EQ(std::string("1[") + string2 + "]", memoryOperand2.toString());
 }
@@ -101,9 +109,9 @@ TEST(AtomTests, LabelOperand) {
 TEST(AtomTests, BinaryOpAtom) {
 	SymbolTable cTable;
 	const std::string addName = "ADD";
-	std::shared_ptr<MemoryOperand> x = cTable.add("x");
+	std::shared_ptr<MemoryOperand> x = cTable.addVar("x", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
 	std::shared_ptr<NumberOperand> n = std::make_shared<NumberOperand>(10);
-	std::shared_ptr<MemoryOperand> z = cTable.add("z");
+	std::shared_ptr<MemoryOperand> z = cTable.addVar("z", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
 	BinaryOpAtom binaryAtomAdd(addName, x, n, z);
 	ASSERT_EQ("(ADD, 0[x], `10`, 1[z])", binaryAtomAdd.toString());
 
@@ -133,8 +141,8 @@ TEST(AtomTests, BinaryOpAtom) {
 TEST(AtomTests, UnaryOpAtom) {
 	SymbolTable cTable;
 	const std::string negName = "NEG";
-	std::shared_ptr<MemoryOperand> x = cTable.add("x");
-	std::shared_ptr<MemoryOperand> z = cTable.add("z");
+	std::shared_ptr<MemoryOperand> x = cTable.addVar("x", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
+	std::shared_ptr<MemoryOperand> z = cTable.addVar("z", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
 	UnaryOpAtom unaryAtomNeg(negName, x, z);
 	ASSERT_EQ("(NEG, 0[x],, 1[z])", unaryAtomNeg.toString());
 
@@ -150,8 +158,8 @@ TEST(AtomTests, UnaryOpAtom) {
 TEST(AtomTests, ConditionalJumpAtom) {
 	SymbolTable cTable;
 	const std::string eqName = "EQ";
-	std::shared_ptr<MemoryOperand> x = cTable.add("x");
-	std::shared_ptr<MemoryOperand> z = cTable.add("z");
+	std::shared_ptr<MemoryOperand> x = cTable.addVar("x", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
+	std::shared_ptr<MemoryOperand> z = cTable.addVar("z", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
 	std::shared_ptr<LabelOperand> l = std::make_shared<LabelOperand>(10);
 	ConditionalJumpAtom conditionalJumpAtomEq(eqName, x, z, l);
 	ASSERT_EQ("(EQ, 0[x], 1[z], L10)", conditionalJumpAtomEq.toString());
@@ -179,36 +187,36 @@ TEST(AtomTests, LabelAtom) {
 
 TEST(AtomTests, InAtom) {
 	SymbolTable table;
-	std::shared_ptr<MemoryOperand> x = table.add("x");
+	std::shared_ptr<MemoryOperand> x = table.addVar("x", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
 	InAtom inAtom(x);
 	ASSERT_EQ("(IN,,, 0[x])", inAtom.toString());
 }
 
 TEST(AtomTests, OutAtom) {
 	SymbolTable table;
-	std::shared_ptr<MemoryOperand> x = table.add("x");
+	std::shared_ptr<MemoryOperand> x = table.addVar("x", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
 	OutAtom outAtom(x);
 	ASSERT_EQ("(OUT,,, 0[x])", outAtom.toString());
 }
 
 TEST(AtomTests, CallAtom) {
 	SymbolTable table;
-	std::shared_ptr<MemoryOperand> f = table.add("func1");
-	std::shared_ptr<MemoryOperand> x = table.add("x");
+	std::shared_ptr<MemoryOperand> f = table.addFunc("func1", SymbolTable::TableRecord::RecordType::integer, 1);
+	std::shared_ptr<MemoryOperand> x = table.addVar("x", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
 	CallAtom callAtom(f, x);
 	ASSERT_EQ("(CALL, 0[func1],, 1[x])", callAtom.toString());
 }
 
 TEST(AtomTests, RetAtom) {
 	SymbolTable table;
-	std::shared_ptr<MemoryOperand> v = table.add("g");
+	std::shared_ptr<MemoryOperand> v = table.addVar("g", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
 	RetAtom retAtom(v);
 	ASSERT_EQ("(RET,,, 0[g])", retAtom.toString());
 }
 
 TEST(AtomTests, ParamAtom) {
 	SymbolTable table;
-	std::shared_ptr<MemoryOperand> v = table.add("y");
+	std::shared_ptr<MemoryOperand> v = table.addVar("y", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
 	ParamAtom paramAtom(v);
 	ASSERT_EQ("(PARAM,,, 0[y])", paramAtom.toString());
 }
@@ -221,28 +229,30 @@ TEST(TranslatorTests, AddNPrint) {
 	ASSERT_EQ("", ss.str());
 
 	SymbolTable table;
-	std::shared_ptr<MemoryOperand> x = table.add("x");
-	std::shared_ptr<MemoryOperand> z = table.add("z");
+	std::shared_ptr<MemoryOperand> x = table.addVar("x", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
+	std::shared_ptr<MemoryOperand> z = table.addVar("z", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
 	std::shared_ptr<LabelOperand> l = std::make_shared<LabelOperand>(10);
 	std::shared_ptr<ConditionalJumpAtom> conditionalJumpAtomEq = std::make_shared<ConditionalJumpAtom>("EQ", x, z, l);
 
-	translator.generateAtoms(conditionalJumpAtomEq);
+	translator.generateAtoms(GLOBAL_SCOPE, conditionalJumpAtomEq);
 
-	x = table.add("u");
-	z = table.add("v");
+	x = table.addVar("u", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
+	z = table.addVar("v", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
 	std::shared_ptr<BinaryOpAtom> binaryAtomAdd = std::make_shared<BinaryOpAtom>("ADD", x, z, z);
 
-	translator.generateAtoms(binaryAtomAdd);
+	translator.generateAtoms(GLOBAL_SCOPE, binaryAtomAdd);
 
 	ss.clear();
 
 	translator.printAtoms(ss);
-	ASSERT_EQ("(EQ, 0[x], 1[z], L10)\n(ADD, 2[u], 3[v], 3[v])\n", ss.str());
+	auto expected = "-1\t(EQ, 0[x], 1[z], L10)\n"
+	                "-1\t(ADD, 2[u], 3[v], 3[v])\n";
+	ASSERT_EQ(expected, ss.str());
 }
 
 TEST(SymbolTableTests, allocTest) {
 	SymbolTable table;
-	auto temp = table.alloc();
+	auto temp = table.alloc(GLOBAL_SCOPE);
 	UnaryOpAtom atom("NEG", temp, temp);
 	ASSERT_EQ("(NEG, 0[!temp1],, 0[!temp1])", atom.toString());
 }
@@ -254,14 +264,16 @@ TEST(TranslatorTests, newLabelTest) {
 
 	std::shared_ptr<LabelOperand> l = translator.newLabel();
 	std::shared_ptr<LabelAtom> labelAtom = std::make_shared<LabelAtom>(l);
-	translator.generateAtoms(labelAtom);
+	translator.generateAtoms(GLOBAL_SCOPE, labelAtom);
 
 	l = translator.newLabel();
 	labelAtom = std::make_shared<LabelAtom>(l);
-	translator.generateAtoms(labelAtom);
+	translator.generateAtoms(GLOBAL_SCOPE, labelAtom);
 
 	translator.printAtoms(ss);
-	ASSERT_EQ("(LBL,,, L0)\n(LBL,,, L1)\n", ss.str());
+	auto expected = "-1\t(LBL,,, L0)\n"
+	                "-1\t(LBL,,, L1)\n";
+	ASSERT_EQ(expected, ss.str());
 }
 
 TEST(TranslatorTests, exceptionsTest) {

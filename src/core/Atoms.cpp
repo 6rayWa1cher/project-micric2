@@ -13,13 +13,21 @@ Operand::Operand() = default;
 
 RValue::RValue() = default;
 
-MemoryOperand::MemoryOperand(unsigned int index, const SymbolTable *symbolTable) : _index(index),
-                                                                                   _symbolTable(symbolTable) {
+MemoryOperand::MemoryOperand(size_t index, const SymbolTable *symbolTable) : _index(index),
+                                                                             _symbolTable(symbolTable) {
 
 }
 
 std::string MemoryOperand::toString() const {
 	return std::to_string(this->_index) + "[" + this->_symbolTable->operator[](this->_index) + ']';
+}
+
+bool MemoryOperand::operator==(const MemoryOperand& rhs) const {
+	return _index == rhs._index && _symbolTable == rhs._symbolTable;
+}
+
+bool MemoryOperand::operator!=(const MemoryOperand& rhs) const {
+	return !(rhs == *this);
 }
 
 NumberOperand::NumberOperand(int value) : _value(value) {}
@@ -28,8 +36,8 @@ std::string NumberOperand::toString() const {
 	return '`' + std::to_string(this->_value) + '`';
 }
 
-StringOperand::StringOperand(unsigned int index, const StringTable * stringTable) : _index(index),
-_stringTable(stringTable) {}
+StringOperand::StringOperand(size_t index, const StringTable *stringTable) : _index(index),
+                                                                             _stringTable(stringTable) {}
 
 std::string StringOperand::toString() const {
 	return std::to_string(this->_index) + '{' + this->_stringTable->operator[](this->_index) + '}';
@@ -107,20 +115,20 @@ std::string ConditionalJumpAtom::toString() const {
 }
 
 CallAtom::CallAtom(std::shared_ptr<MemoryOperand> function,
-				   std::shared_ptr<MemoryOperand> result) : _function(function),
-															_result(result) {}
+                   std::shared_ptr<MemoryOperand> result) : _function(std::move(function)),
+                                                            _result(std::move(result)) {}
 
 std::string CallAtom::toString() const {
 	return "(CALL, " + _function->toString() + ",, " + _result->toString() + ")";
 }
 
-RetAtom::RetAtom(std::shared_ptr<RValue> value) : _value(value) {}
+RetAtom::RetAtom(std::shared_ptr<RValue> value) : _value(std::move(value)) {}
 
 std::string RetAtom::toString() const {
 	return "(RET,,, " + _value->toString() + ")";
 }
 
-ParamAtom::ParamAtom(std::shared_ptr<RValue> value) : _value(value) {}
+ParamAtom::ParamAtom(std::shared_ptr<RValue> value) : _value(std::move(value)) {}
 
 std::string ParamAtom::toString() const {
 	return "(PARAM,,, " + _value->toString() + ")";
