@@ -33,6 +33,8 @@ public:
 
 	std::string toString() const override;
 
+	size_t index() const noexcept;
+
 	bool operator==(const MemoryOperand& rhs) const;
 
 	bool operator!=(const MemoryOperand& rhs) const;

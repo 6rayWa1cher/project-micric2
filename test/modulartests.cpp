@@ -50,6 +50,14 @@ TEST(SymbolTableTests, Overall) {
 	ASSERT_NE(nullptr, table.checkFunc(string2, 3));
 	ASSERT_EQ(MemoryOperand(1, &table), *table.checkFunc(string2, 3));
 	ASSERT_EQ(nullptr, table.addFunc(string2, SymbolTable::TableRecord::RecordType::chr, 3));
+
+	std::shared_ptr<MemoryOperand> ptr3 = table.alloc(777);
+	ASSERT_FALSE(!ptr3);
+	ASSERT_EQ("2[!temp1]", ptr3->toString());
+	ASSERT_EQ("!temp1", table[2]);
+	ASSERT_NE(nullptr, table.checkVar(777, "!temp1"));
+	ASSERT_EQ(MemoryOperand(2, &table), *table.checkVar(777, "!temp1"));
+	ASSERT_EQ("3[!temp2]", table.alloc(777)->toString());
 }
 
 TEST(SymbolTableTests, PrintTableTest) {

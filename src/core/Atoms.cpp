@@ -30,6 +30,10 @@ bool MemoryOperand::operator!=(const MemoryOperand& rhs) const {
 	return !(rhs == *this);
 }
 
+size_t MemoryOperand::index() const noexcept {
+	return this->_index;
+}
+
 NumberOperand::NumberOperand(int value) : _value(value) {}
 
 std::string NumberOperand::toString() const {

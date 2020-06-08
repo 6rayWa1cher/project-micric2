@@ -39,13 +39,22 @@ public:
 
 	std::shared_ptr<LabelOperand> newLabel();
 
-	void syntaxError(const std::string& message);
+	void syntaxError(const std::string& message = "Error during syntax analysis");
 
 	void lexicalError(const std::string& message);
 
 	const std::deque<Token>& getLastLexems() const;
 
 protected:
+
+	void getAndCheckLexem(bool eofAcceptable = false, const std::vector<LexemType>& acceptableLexems = {});
+
+	std::shared_ptr<MemoryOperand> checkVar(const Scope scope, const std::string& name);
+
+	std::shared_ptr<MemoryOperand> checkFunc(const std::string& name, int len);
+
+	void pushBackLexem();
+
 	std::shared_ptr<RValue> E(Scope scope);
 
 	std::shared_ptr<RValue> E1(Scope scope);
@@ -74,13 +83,23 @@ protected:
 
 	std::shared_ptr<RValue> E7_(Scope scope, std::shared_ptr<RValue> p);
 
-	void getAndCheckLexem(bool eofAcceptable = false);
+	SymbolTable::TableRecord::RecordType Type(Scope scope);
 
-	std::shared_ptr<MemoryOperand> checkVar(const Scope scope, const std::string& name);
+	bool InitVar(Scope scope, SymbolTable::TableRecord::RecordType recordType, const std::string& q);
 
-	std::shared_ptr<MemoryOperand> checkFunc(const std::string& name, int len);
+	int ParamList(Scope scope);
 
-	void pushBackLexem();
+	int ParamList_(Scope scope);
+
+	bool DeclVarList_(Scope scope, SymbolTable::TableRecord::RecordType p);
+
+	bool DeclareStmt_(Scope scope, SymbolTable::TableRecord::RecordType p, const std::string& q);
+
+	bool StmtList(Scope scope);
+
+	bool DeclareStmt(Scope scope);
+
+	bool Stmt(Scope scope);
 };
 
 class TranslationException : public std::exception {

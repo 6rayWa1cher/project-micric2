@@ -2,7 +2,6 @@
 #include <sstream>
 #include <fstream>
 #include "Translator.h"
-#include "SymbolTable.h"
 
 std::string getFullFilename(std::string string) {
 	std::stringstream ss;
@@ -20,6 +19,9 @@ std::string getFullFilename(std::string string) {
 	}
 	return ss2.str();
 }
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-throw-by-value-catch-by-reference" // VS unexpected troubles
 
 int main(int argc, char **argv) {
 	std::ifstream ifile;
@@ -93,3 +95,5 @@ int main(int argc, char **argv) {
 		return 2;
 	}
 }
+
+#pragma clang diagnostic pop

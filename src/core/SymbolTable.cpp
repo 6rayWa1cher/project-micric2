@@ -36,7 +36,7 @@ void printNSymbols(std::ostream& stream, size_t n, std::string s) {
 	for (size_t i = 0; i < n; i++) stream << s;
 }
 
-void SymbolTable::printSymbolTable(std::ostream& stream) {
+void SymbolTable::printSymbolTable(std::ostream& stream) const {
 	//Designed for a column length of not more than 8
 	//For function names or variables of greater length, it is necessary to rework
 	stream << "SYMBOL TABLE" << std::endl;
@@ -166,4 +166,26 @@ std::shared_ptr<MemoryOperand> SymbolTable::checkFunc(const std::string& name, i
 	}
 	SymbolTable *st = this;
 	return std::make_shared<MemoryOperand>(recordIndex, st);
+}
+
+size_t SymbolTable::getNextIndex() const {
+	return _records.size();
+}
+
+bool SymbolTable::operator==(const SymbolTable& rhs) const {
+	return _records == rhs._records &&
+	       lastTemp == rhs.lastTemp;
+}
+
+bool SymbolTable::operator!=(const SymbolTable& rhs) const {
+	return !(rhs == *this);
+}
+
+void SymbolTable::changeFuncLength(const std::string& name, int newLen) {
+	auto it = std::find_if(_records.begin(), _records.end(), [name](const TableRecord& tableRecord) -> bool {
+		return tableRecord._name == name && tableRecord._kind == TableRecord::RecordKind::func;
+	});
+	if (it != _records.end()) {
+		it->_len = newLen;
+	}
 }

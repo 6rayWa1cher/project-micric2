@@ -48,11 +48,15 @@ public:
 
 	size_t size() const;
 
+	size_t getNextIndex() const;
+
 	std::shared_ptr<MemoryOperand> addVar(const std::string& name,
 	                                      const Scope scope, TableRecord::RecordType type,
 	                                      int init = 0);
 
 	std::shared_ptr<MemoryOperand> addFunc(const std::string& name, TableRecord::RecordType type, int len);
+
+	void changeFuncLength(const std::string& name, int newLen);
 
 	virtual std::shared_ptr<MemoryOperand> checkVar(const Scope scope, const std::string& name);
 
@@ -60,7 +64,11 @@ public:
 
 	std::shared_ptr<MemoryOperand> alloc(Scope scope);
 
-	void printSymbolTable(std::ostream& stream);
+	void printSymbolTable(std::ostream& stream) const;
+
+	bool operator==(const SymbolTable& rhs) const;
+
+	bool operator!=(const SymbolTable& rhs) const;
 
 private:
 	int64_t findRecord(const std::string& name, Scope scope) const;

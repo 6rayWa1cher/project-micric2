@@ -3,30 +3,14 @@
 //
 
 #include <gtest/gtest.h>
-#include "../src/include/Atoms.h"
-#include "../src/include/SymbolTable.h"
-#include "../src/include/StringTable.h"
-#include "../src/include/Translator.h"
-#include <sstream>
+#include "../../src/include/Atoms.h"
+#include "../../src/include/SymbolTable.h"
+#include "../../src/include/StringTable.h"
+#include "../../src/include/Translator.h"
+#include "../tools.h"
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "cert-err58-cpp"
-
-
-std::vector<std::string> split(const std::string& string, const char delimiter) {
-	std::vector<std::string> out;
-	std::stringstream sb;
-	for (char c : string) {
-		if (c == delimiter) {
-			out.push_back(sb.str());
-			sb = std::stringstream();
-		} else {
-			sb << c;
-		}
-	}
-	out.push_back(sb.str());
-	return out;
-}
 
 
 std::vector<std::string> getAtomsExpression(const std::string& s, std::vector<std::string> vars) {
@@ -71,7 +55,7 @@ std::vector<std::string> getAtomsExpression(const std::string& s, std::vector<st
 	return outVector;
 }
 
-TEST(TranslatorTests, Grammar2) {
+TEST(TranslatorExpressionTests, Grammar1_2) {
 	std::vector<std::string> expected = {
 			"(OR, 0[a], `2`, 2[!temp1])",
 			"(OR, 2[!temp1], 1[b], 3[!temp2])"
@@ -80,7 +64,7 @@ TEST(TranslatorTests, Grammar2) {
 	ASSERT_EQ(expected, actual);
 }
 
-TEST(TranslatorTests, Grammar3_4) {
+TEST(TranslatorExpressionTests, Grammar1_3_4) {
 	std::vector<std::string> expected = {
 			"(OR, 0[a], `2`, 1[!temp1])"
 	};
@@ -88,7 +72,7 @@ TEST(TranslatorTests, Grammar3_4) {
 	ASSERT_EQ(expected, actual);
 }
 
-TEST(TranslatorTests, Grammar5) {
+TEST(TranslatorExpressionTests, Grammar1_5) {
 	std::vector<std::string> expected = {
 			"(AND, 0[a], `2`, 2[!temp1])",
 			"(AND, 2[!temp1], 1[b], 3[!temp2])"
@@ -97,7 +81,7 @@ TEST(TranslatorTests, Grammar5) {
 	ASSERT_EQ(expected, actual);
 }
 
-TEST(TranslatorTests, Grammar6_7) {
+TEST(TranslatorExpressionTests, Grammar1_6_7) {
 	std::vector<std::string> expected = {
 			"(AND, 0[a], `2`, 1[!temp1])"
 	};
@@ -105,11 +89,11 @@ TEST(TranslatorTests, Grammar6_7) {
 	ASSERT_EQ(expected, actual);
 }
 
-TEST(TranslatorTests, Grammar8) {
+TEST(TranslatorExpressionTests, Grammar1_8) {
 	ASSERT_ANY_THROW(getAtomsExpression("a == 2 == r", {"a", "r"}));
 }
 
-TEST(TranslatorTests, Grammar9) {
+TEST(TranslatorExpressionTests, Grammar1_9) {
 	std::vector<std::string> expected = {
 			"(MOV, `1`,, 1[!temp1])",
 			"(EQ, 0[a], `2`, L0)",
@@ -120,7 +104,7 @@ TEST(TranslatorTests, Grammar9) {
 	ASSERT_EQ(expected, actual);
 }
 
-TEST(TranslatorTests, Grammar10) {
+TEST(TranslatorExpressionTests, Grammar1_10) {
 	std::vector<std::string> expected = {
 			"(MOV, `1`,, 1[!temp1])",
 			"(NE, 0[a], `2`, L0)",
@@ -131,7 +115,7 @@ TEST(TranslatorTests, Grammar10) {
 	ASSERT_EQ(expected, actual);
 }
 
-TEST(TranslatorTests, Grammar11) {
+TEST(TranslatorExpressionTests, Grammar1_11) {
 	std::vector<std::string> expected = {
 			"(MOV, `1`,, 1[!temp1])",
 			"(GT, 0[a], `2`, L0)",
@@ -142,7 +126,7 @@ TEST(TranslatorTests, Grammar11) {
 	ASSERT_EQ(expected, actual);
 }
 
-TEST(TranslatorTests, Grammar12) {
+TEST(TranslatorExpressionTests, Grammar1_12) {
 	std::vector<std::string> expected = {
 			"(MOV, `1`,, 1[!temp1])",
 			"(LT, 0[a], `2`, L0)",
@@ -153,7 +137,7 @@ TEST(TranslatorTests, Grammar12) {
 	ASSERT_EQ(expected, actual);
 }
 
-TEST(TranslatorTests, Grammar13) {
+TEST(TranslatorExpressionTests, Grammar1_13) {
 	std::vector<std::string> expected = {
 			"(MOV, `1`,, 1[!temp1])",
 			"(LE, 0[a], `2`, L0)",
@@ -165,7 +149,7 @@ TEST(TranslatorTests, Grammar13) {
 }
 
 
-TEST(TranslatorTests, Grammar14_15_16_17_18) {
+TEST(TranslatorExpressionTests, Grammar1_14_15_16_17_18) {
 	std::vector<std::string> expected = {
 			"(ADD, `2`, `3`, 0[!temp1])",
 			"(SUB, 0[!temp1], `4`, 1[!temp2])"
@@ -174,7 +158,7 @@ TEST(TranslatorTests, Grammar14_15_16_17_18) {
 	ASSERT_EQ(expected, actual);
 }
 
-TEST(TranslatorTests, Grammar19_21) {
+TEST(TranslatorExpressionTests, Grammar1_19_21) {
 	std::vector<std::string> expected = {
 			"(MUL, `2`, `101`, 0[!temp1])",
 			"(MUL, 0[!temp1], `4`, 1[!temp2])"
@@ -184,7 +168,7 @@ TEST(TranslatorTests, Grammar19_21) {
 }
 
 
-TEST(TranslatorTests, Grammar20_23) {
+TEST(TranslatorExpressionTests, Grammar1_20_23) {
 	std::vector<std::string> expected = {
 			"(MUL, `2`, `3`, 0[!temp1])"
 	};
@@ -192,7 +176,7 @@ TEST(TranslatorTests, Grammar20_23) {
 	ASSERT_EQ(expected, actual);
 }
 
-TEST(TranslatorTests, Grammar22) {
+TEST(TranslatorExpressionTests, Grammar1_22) {
 	std::vector<std::string> expected = {
 			"(NOT, `6`,, 0[!temp1])"
 	};
@@ -200,7 +184,7 @@ TEST(TranslatorTests, Grammar22) {
 	ASSERT_EQ(expected, actual);
 }
 
-TEST(TranslatorTests, Grammar24) {
+TEST(TranslatorExpressionTests, Grammar1_24) {
 	std::vector<std::string> expected = {
 			"(ADD, 1[b], 2[c], 3[!temp1])",
 			"(MUL, 0[a], 3[!temp1], 4[!temp2])"
@@ -209,13 +193,11 @@ TEST(TranslatorTests, Grammar24) {
 	ASSERT_EQ(expected, actual);
 }
 
-TEST(TranslatorTests, Grammar25) {
-	auto iss = std::istringstream("2");
-	Translator translator(iss);
-	translator.startTranslation();
+TEST(TranslatorExpressionTests, Grammar1_25) {
+	getAtomsExpression("2", {});
 }
 
-TEST(TranslatorTests, Grammar26) {
+TEST(TranslatorExpressionTests, Grammar1_26) {
 	std::vector<std::string> expected = {
 			"(NOT, `101`,, 0[!temp1])"
 	};
@@ -224,7 +206,7 @@ TEST(TranslatorTests, Grammar26) {
 }
 
 
-TEST(TranslatorTests, Grammar27) {
+TEST(TranslatorExpressionTests, Grammar1_27) {
 	std::vector<std::string> expected = {
 			"(ADD, 0[a], `1`, 0[a])"
 	};
@@ -232,7 +214,7 @@ TEST(TranslatorTests, Grammar27) {
 	ASSERT_EQ(expected, actual);
 }
 
-TEST(TranslatorTests, Grammar28) {
+TEST(TranslatorExpressionTests, Grammar1_28) {
 	std::vector<std::string> expected = {
 			"(NOT, 0[a],, 1[!temp1])"
 	};
@@ -240,7 +222,7 @@ TEST(TranslatorTests, Grammar28) {
 	ASSERT_EQ(expected, actual);
 }
 
-TEST(TranslatorTests, Grammar29) {
+TEST(TranslatorExpressionTests, Grammar1_29) {
 	std::vector<std::string> expected = {
 			"(MOV, 0[a],, 1[!temp1])",
 			"(ADD, 0[a], `1`, 0[a])"
@@ -249,7 +231,7 @@ TEST(TranslatorTests, Grammar29) {
 	ASSERT_EQ(expected, actual);
 }
 
-TEST(TranslatorTests, Grammar31) {
+TEST(TranslatorExpressionTests, Grammar1_31) {
 	std::vector<std::string> expected = {
 			"(MUL, 0[a], 1[b], 2[!temp1])"
 	};
@@ -258,7 +240,7 @@ TEST(TranslatorTests, Grammar31) {
 }
 
 
-TEST(TranslatorTests, BigTest1) {
+TEST(TranslatorExpressionTests, BigTest1) {
 	std::vector<std::string> expected = {
 			"(MOV, `1`,, 4[!temp1])",
 			"(EQ, 0[a], 1[b], L0)",
@@ -282,7 +264,7 @@ TEST(TranslatorTests, BigTest1) {
 	ASSERT_EQ(expected, actual);
 }
 
-TEST(TranslatorTests, BigTest2) {
+TEST(TranslatorExpressionTests, BigTest2) {
 	ASSERT_ANY_THROW(getAtomsExpression("(a == b) * 3 > 1 - 'A' + c * - d++", {"a", "b", "c", "d"}));
 	ASSERT_ANY_THROW(getAtomsExpression("(a == ) * 3 > 1 - 'A' + c * 2 - d++", {"a", "b", "c", "d"}));
 	ASSERT_ANY_THROW(getAtomsExpression("(a == b) * 3 > ", {"a", "b", "c", "d"}));
