@@ -3,6 +3,7 @@
 //
 
 #include "tools.h"
+#include "../src/include/Translator.h"
 #include <sstream>
 
 std::vector<std::string> split(const std::string& string, char delimiter) {
@@ -18,4 +19,45 @@ std::vector<std::string> split(const std::string& string, char delimiter) {
 	}
 	out.push_back(sb.str());
 	return out;
+}
+
+std::vector<std::string>
+getAtomsExpression(const std::string& s, std::vector<std::string> vars, const Scope expectedScope) {
+	class LocalTranslator : public Translator {
+	private:
+		Scope _scope;
+	public:
+		explicit LocalTranslator(std::vector<std::string>& vars, Scope scope, std::istream& inputStream) : Translator(
+				inputStream), _scope(scope) {
+			for (const std::string& var : vars) {
+				_symbolTable.addVar(var, scope, SymbolTable::TableRecord::RecordType::integer);
+			}
+		};
+
+		void startTranslation() override {
+			E(_scope);
+			getAndCheckLexem(true);
+			if (_currentLexem != LexemType::eof) {
+				syntaxError("Syntax analysis was completed, but an additional lexeme appeared");
+			}
+		}
+	};
+	auto iss = std::istringstream(s);
+	LocalTranslator translator(vars, expectedScope, iss);
+	translator.startTranslation();
+	std::ostringstream oss;
+	translator.printAtoms(oss);
+	std::string out = oss.str();
+	std::vector<std::string> scopeAtomVector = split(out, '\n');
+	scopeAtomVector.erase(scopeAtomVector.end() - 1);
+	std::vector<std::string> outVector;
+	for (const std::string& scopeAtom : scopeAtomVector) {
+		auto spliited = split(scopeAtom, '\t');
+		Scope actualScope = std::stoi(spliited[0]);
+		if (actualScope != expectedScope) {
+			throw std::exception();
+		}
+		outVector.push_back(spliited[1]);
+	}
+	return outVector;
 }

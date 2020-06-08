@@ -13,47 +13,7 @@
 #pragma ide diagnostic ignored "cert-err58-cpp"
 
 
-std::vector<std::string> getAtomsExpression(const std::string& s, std::vector<std::string> vars) {
-	class LocalTranslator : public Translator {
-	private:
-		Scope _scope;
-	public:
-		explicit LocalTranslator(std::vector<std::string>& vars, Scope scope, std::istream& inputStream) : Translator(
-				inputStream), _scope(scope) {
-			for (const std::string& var : vars) {
-				_symbolTable.addVar(var, scope, SymbolTable::TableRecord::RecordType::integer);
-			}
-		};
 
-		void startTranslation() override {
-			E(_scope);
-			const Token& token = _scanner.getNextToken();
-			if (token != LexemType::eof) {
-				syntaxError("Syntax analysis ended, but additional token appears");
-			}
-		}
-	};
-	auto iss = std::istringstream(s);
-	Scope expectedScope = 1337;
-	LocalTranslator translator(vars, expectedScope, iss);
-	translator.startTranslation();
-	std::ostringstream oss;
-	translator.printAtoms(oss);
-	std::string out = oss.str();
-	std::vector<std::string> scopeAtomVector = split(out, '\n');
-	scopeAtomVector.erase(scopeAtomVector.end() - 1);
-	std::vector<std::string> outVector;
-	for (const std::string& scopeAtom : scopeAtomVector) {
-		auto spliited = split(scopeAtom, '\t');
-		Scope actualScope = std::stoi(spliited[0]);
-		if (actualScope != expectedScope) {
-			ADD_FAILURE();
-			throw std::exception();
-		}
-		outVector.push_back(spliited[1]);
-	}
-	return outVector;
-}
 
 TEST(TranslatorExpressionTests, Grammar1_2) {
 	std::vector<std::string> expected = {

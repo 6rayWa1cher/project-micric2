@@ -7,6 +7,7 @@
 #include "../src/include/SymbolTable.h"
 #include "../src/include/StringTable.h"
 #include "../src/include/Translator.h"
+#include "tools.h"
 #include <sstream>
 
 #pragma clang diagnostic push
@@ -284,27 +285,135 @@ TEST(TranslatorTests, newLabelTest) {
 	ASSERT_EQ(expected, ss.str());
 }
 
-TEST(TranslatorTests, exceptionsTest) {
-	auto iss = std::istringstream("1 + 2");
-	Translator translator(iss);
+TEST(TranslatorExceptionsTests, lexicalUnexpectedEOFTest) {
 	std::ostringstream ss;
+	std::string expected = "LEXICAL ERROR: [error, \"unexpected EOF\"]\n"
+	                       "Appeared on the 1 line.\n"
+	                       "Last correctly read lexemes: [lpar], [id, \"a\"], [rpar]\n";
 	try {
-		translator.lexicalError("Incorrect lexem!");
+		getAtomsExpression("(a) &", {"a"});
 	}
 	catch (TranslationException& exception) {
-		ss << "Translator exception accured (" << exception.what() << ")";
+		ss << exception.what();
 	}
-	ASSERT_EQ("Translator exception accured (Incorrect lexem!)", ss.str());
-	std::ostringstream ss1;
-
-	try {
-		translator.syntaxError("AAAA, GORIM!");
-	}
-	catch (TranslationException& exception1) {
-		ss1 << "Translator exception accured (" << exception1.what() << ")";
-	}
-	ASSERT_EQ("Translator exception accured (AAAA, GORIM!)", ss1.str());
+	ASSERT_EQ(expected, ss.str());
 }
 
+TEST(TranslatorExceptionsTests, lexicalUnexpectedANDTest) {
+	std::ostringstream ss;
+	std::string expected = "LEXICAL ERROR: [error, \"unexpected statement: expected &&\"]\n"
+	                       "Appeared on the 1 line.\n"
+	                       "Last correctly read lexemes: [lpar], [id, \"a\"], [rpar]\n";
+	try {
+		getAtomsExpression("(a) & ", {"a"});
+	}
+	catch (TranslationException& exception) {
+		ss << exception.what();
+	}
+	ASSERT_EQ(expected, ss.str());
+}
+
+TEST(TranslatorExceptionsTests, lexicalUnexpectedORTest) {
+	std::ostringstream ss;
+	std::string expected = "LEXICAL ERROR: [error, \"unexpected statement: expected ||\"]\n"
+	                       "Appeared on the 1 line.\n"
+	                       "Last correctly read lexemes: [lpar], [id, \"a\"], [rpar]\n";
+	try {
+		getAtomsExpression("(a) | ", {"a"});
+	}
+	catch (TranslationException& exception) {
+		ss << exception.what();
+	}
+	ASSERT_EQ(expected, ss.str());
+}
+
+TEST(TranslatorExceptionsTests, lexicalUnknownSymbolTest) {
+	std::ostringstream ss;
+	std::string expected = "LEXICAL ERROR: [error, \"unknown symbol \\\"]\n"
+	                       "Appeared on the 1 line.\n"
+	                       "Last correctly read lexemes: [nothing], [nothing], [nothing]\n";
+	try {
+		getAtomsExpression("\\", {});
+	}
+	catch (TranslationException& exception) {
+		ss << exception.what();
+	}
+	ASSERT_EQ(expected, ss.str());
+}
+
+TEST(TranslatorExceptionsTests, syntaxReachedEOFBeforeEndTest) {
+	std::ostringstream ss;
+	std::string expected = "SYNTAX ERROR: Reached EOF before end of a syntax analysis\n"
+	                       "Appeared on the 1 line.\n"
+	                       "Current lexem: [eof]\n"
+	                       "Last correctly read lexemes: [nothing], [nothing], [nothing]\n";
+	try {
+		getAtomsExpression("", {});
+	}
+	catch (TranslationException& exception) {
+		ss << exception.what();
+	}
+	ASSERT_EQ(expected, ss.str());
+}
+
+TEST(TranslatorExceptionsTests, syntaxAdditionalLexemeAppearedTest) {
+	std::ostringstream ss;
+	std::string expected = "SYNTAX ERROR: Syntax analysis was completed, but an additional lexeme appeared\n"
+	                       "Appeared on the 1 line.\n"
+	                       "Current lexem: [id, \"b\"]\n"
+	                       "Last correctly read lexemes: [nothing], [id, \"a\"], [opinc]\n";
+	try {
+		getAtomsExpression("a++ b", {"a", "b"});
+	}
+	catch (TranslationException& exception) {
+		ss << exception.what();
+	}
+	ASSERT_EQ(expected, ss.str());
+}
+
+TEST(TranslatorExceptionsTests, syntaxExpectedRparTest) {
+	std::ostringstream ss;
+	std::string expected = "SYNTAX ERROR: Not matching lexem type: expected - [rpar], got - [id, \"b\"]\n"
+	                       "Appeared on the 1 line.\n"
+	                       "Current lexem: [id, \"b\"]\n"
+	                       "Last correctly read lexemes: [lpar], [id, \"a\"], [opinc]\n";
+	try {
+		getAtomsExpression("(a++ b)", {"a", "b"});
+	}
+	catch (TranslationException& exception) {
+		ss << exception.what();
+	}
+	ASSERT_EQ(expected, ss.str());
+}
+
+TEST(TranslatorExceptionsTests, syntaxExpectedNumChrTest) {
+	std::ostringstream ss;
+	std::string expected = "SYNTAX ERROR: Not matching lexem type: expected - [lpar], [num], [chr], [opinc] or [id], got - [rpar]\n"
+	                       "Appeared on the 1 line.\n"
+	                       "Current lexem: [rpar]\n"
+	                       "Last correctly read lexemes: [nothing], [nothing], [lpar]\n";
+	try {
+		getAtomsExpression("()", {});
+	}
+	catch (TranslationException& exception) {
+		ss << exception.what();
+	}
+	ASSERT_EQ(expected, ss.str());
+}
+
+TEST(TranslatorExceptionsTests, syntaxExpectedIdTest) {
+	std::ostringstream ss;
+	std::string expected = "SYNTAX ERROR: Not matching lexem type: expected - [id], got - [lpar]\n"
+	                       "Appeared on the 1 line.\n"
+	                       "Current lexem: [lpar]\n"
+	                       "Last correctly read lexemes: [id, \"a\"], [opplus], [opinc]\n";
+	try {
+		getAtomsExpression("a + ++()", {"a"});
+	}
+	catch (TranslationException& exception) {
+		ss << exception.what();
+	}
+	ASSERT_EQ(expected, ss.str());
+}
 
 #pragma clang diagnostic pop
