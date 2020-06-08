@@ -10,6 +10,7 @@
 #include "Scanner.h"
 #include <exception>
 #include <queue>
+#include <iostream>
 
 class Translator {
 protected:
@@ -41,7 +42,7 @@ public:
 
 	void lexicalError(const std::string& message);
 
-	const std::deque<Token>& getLastLexems() const;
+	std::string getLastLexems();
 
 protected:
 	std::shared_ptr<RValue> E();

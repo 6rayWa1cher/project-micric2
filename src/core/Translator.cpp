@@ -29,17 +29,26 @@ std::shared_ptr<LabelOperand> Translator::newLabel() {
 }
 
 void Translator::syntaxError(const std::string& message) {
-	throw TranslationException(message);
+	size_t rowPos = _scanner.getRowPos();
+	std::string error = "SYNTAX ERROR: " + message + "\n" +
+						"Appeared on the " + std::to_string(rowPos) + " line.\n";
+	error += "Current lexem: [" + _currentLexem.toString() + "]\n";
+	error += getLastLexems();
+	throw TranslationException(error);
 }
 
 void Translator::lexicalError(const std::string& message) {
-	throw TranslationException(message);
+	size_t rowPos = _scanner.getRowPos();
+	std::string error = "LEXICAL ERROR: [" + message + "]\n" +
+						"Appeared on the " + std::to_string(rowPos) + " line.\n";
+	error += getLastLexems();
+	throw TranslationException(error);
 }
 
 void Translator::getAndCheckLexem(bool eofAcceptable) {
 	_currentLexem = _scanner.getNextToken();
 	_lastLexems.push_back(_currentLexem);
-	while (_lastLexems.back().type() != LexemType::eof && _lastLexems.size() > 3) {
+	while (_lastLexems.back().type() != LexemType::eof && _lastLexems.size() > 4) {
 		_lastLexems.pop_front();
 	}
 	if (_currentLexem.type() == LexemType::error) {
@@ -52,16 +61,14 @@ void Translator::getAndCheckLexem(bool eofAcceptable) {
 
 void Translator::pushBackLexem() {
 	_scanner.pushBack(_currentLexem);
-	if (_lastLexems.back() == _currentLexem) {
-		_lastLexems.pop_back();
-	}
+	_lastLexems.pop_back();
 }
 
 
 std::shared_ptr<RValue> Translator::E() {
 	auto q = E7();
 	if (!q) {
-		syntaxError("Error during syntax analysis");
+		syntaxError("Error during syntax analysis on rule E7");
 		return nullptr;
 	}
 	return q;
@@ -71,12 +78,12 @@ std::shared_ptr<RValue> Translator::E7() {
 	// 2
 	auto q = E6();
 	if (!q) {
-		syntaxError("Error during syntax analysis");
+		syntaxError("Error during syntax analysis on rule E6");
 		return nullptr;
 	}
 	auto s = E7_(q);
 	if (!s) {
-		syntaxError("Error during syntax analysis");
+		syntaxError("Error during syntax analysis on rule E7_");
 		return nullptr;
 	}
 	return s;
@@ -87,14 +94,14 @@ std::shared_ptr<RValue> Translator::E7_(std::shared_ptr<RValue> p) {
 	if (_currentLexem.type() == LexemType::opor) { // 3
 		auto r = E6();
 		if (!r) {
-			syntaxError("Error during syntax analysis");
+			syntaxError("Error during syntax analysis on rule E6");
 			return nullptr;
 		}
 		auto s = _symbolTable.alloc();
 		generateAtoms(std::make_shared<BinaryOpAtom>("OR", p, r, s));
 		auto t = E7_(s);
 		if (!t) {
-			syntaxError("Error during syntax analysis");
+			syntaxError("Error during syntax analysis on rule E7_");
 			return nullptr;
 		}
 		return t;
@@ -108,12 +115,12 @@ std::shared_ptr<RValue> Translator::E6() {
 	// 5
 	auto q = E5();
 	if (!q) {
-		syntaxError("Error during syntax analysis");
+		syntaxError("Error during syntax analysis on rule E5");
 		return nullptr;
 	}
 	auto s = E6_(q);
 	if (!s) {
-		syntaxError("Error during syntax analysis");
+		syntaxError("Error during syntax analysis on rule E6_");
 		return nullptr;
 	}
 	return s;
@@ -124,14 +131,14 @@ std::shared_ptr<RValue> Translator::E6_(std::shared_ptr<RValue> p) {
 	if (_currentLexem.type() == LexemType::opand) { // 6
 		auto r = E5();
 		if (!r) {
-			syntaxError("Error during syntax analysis");
+			syntaxError("Error during syntax analysis on rule E5");
 			return nullptr;
 		}
 		auto s = _symbolTable.alloc();
 		generateAtoms(std::make_shared<BinaryOpAtom>("AND", p, r, s));
 		auto t = E6_(s);
 		if (!t) {
-			syntaxError("Error during syntax analysis");
+			syntaxError("Error during syntax analysis on rule E6_");
 			return nullptr;
 		}
 		return t;
@@ -145,12 +152,12 @@ std::shared_ptr<RValue> Translator::E5() {
 	// 8
 	auto q = E4();
 	if (!q) {
-		syntaxError("Error during syntax analysis");
+		syntaxError("Error during syntax analysis on rule E4");
 		return nullptr;
 	}
 	auto s = E5_(q);
 	if (!s) {
-		syntaxError("Error during syntax analysis");
+		syntaxError("Error during syntax analysis on rule E5_");
 		return nullptr;
 	}
 	return s;
@@ -168,7 +175,7 @@ std::shared_ptr<RValue> Translator::E5_(std::shared_ptr<RValue> p) {
 		auto savedLexem = _currentLexem;
 		auto r = E4();
 		if (!r) {
-			syntaxError("Error during syntax analysis");
+			syntaxError("Error during syntax analysis on rule E4");
 			return nullptr;
 		}
 		auto s = _symbolTable.alloc();
@@ -191,7 +198,7 @@ std::shared_ptr<RValue> Translator::E5_(std::shared_ptr<RValue> p) {
 				generateAtoms(std::make_shared<ConditionalJumpAtom>("LE", p, r, l));
 				break;
 			default:
-				syntaxError("erm... wat?");
+				syntaxError("Unexpected operator on rule E5_");
 		}
 		generateAtoms(std::make_shared<UnaryOpAtom>("MOV", std::make_shared<NumberOperand>(0), s));
 		generateAtoms(std::make_shared<LabelAtom>(l));
@@ -206,12 +213,12 @@ std::shared_ptr<RValue> Translator::E4() {
 	// 15
 	auto q = E3();
 	if (!q) {
-		syntaxError("Error during syntax analysis");
+		syntaxError("Error during syntax analysis on rule E3");
 		return nullptr;
 	}
 	auto s = E4_(q);
 	if (!s) {
-		syntaxError("Error during syntax analysis");
+		syntaxError("Error during syntax analysis on rule E4_");
 		return nullptr;
 	}
 	return s;
@@ -222,28 +229,28 @@ std::shared_ptr<RValue> Translator::E4_(std::shared_ptr<RValue> p) {
 	if (_currentLexem.type() == LexemType::opplus) { // 16
 		auto r = E3();
 		if (!r) {
-			syntaxError("Error during syntax analysis");
+			syntaxError("Error during syntax analysis on rule E3");
 			return nullptr;
 		}
 		auto s = _symbolTable.alloc();
 		generateAtoms(std::make_shared<BinaryOpAtom>("ADD", p, r, s));
 		auto t = E4_(s);
 		if (!t) {
-			syntaxError("Error during syntax analysis");
+			syntaxError("Error during syntax analysis on rule E4_");
 			return nullptr;
 		}
 		return t;
 	} else if (_currentLexem.type() == LexemType::opminus) { // 17
 		auto r = E3();
 		if (!r) {
-			syntaxError("Error during syntax analysis");
+			syntaxError("Error during syntax analysis on rule E3");
 			return nullptr;
 		}
 		auto s = _symbolTable.alloc();
 		generateAtoms(std::make_shared<BinaryOpAtom>("SUB", p, r, s));
 		auto t = E4_(s);
 		if (!t) {
-			syntaxError("Error during syntax analysis");
+			syntaxError("Error during syntax analysis on rule E4_");
 			return nullptr;
 		}
 		return t;
@@ -258,12 +265,12 @@ std::shared_ptr<RValue> Translator::E3() {
 	// 19
 	auto q = E2();
 	if (!q) {
-		syntaxError("Error during syntax analysis");
+		syntaxError("Error during syntax analysis on rule E2");
 		return nullptr;
 	}
 	auto s = E3_(q);
 	if (!s) {
-		syntaxError("Error during syntax analysis");
+		syntaxError("Error during syntax analysis on rule E3_");
 		return nullptr;
 	}
 	return s;
@@ -274,7 +281,7 @@ std::shared_ptr<RValue> Translator::E3_(std::shared_ptr<RValue> p) {
 	if (_currentLexem.type() == LexemType::opmult) { // 20
 		auto r = E2();
 		if (!r) {
-			syntaxError("Error during syntax analysis");
+			syntaxError("Error during syntax analysis on rule E2");
 			return nullptr;
 		}
 		auto s = _symbolTable.alloc();
@@ -292,7 +299,7 @@ std::shared_ptr<RValue> Translator::E2() {
 	if (_currentLexem.type() == LexemType::opnot) { // 22
 		auto q = E1();
 		if (!q) {
-			syntaxError("Error during syntax analysis");
+			syntaxError("Error during syntax analysis on rule E1");
 			return nullptr;
 		}
 		auto r = _symbolTable.alloc();
@@ -309,12 +316,12 @@ std::shared_ptr<RValue> Translator::E1() {
 	if (_currentLexem.type() == LexemType::lpar) { // 24
 		auto q = this->E();
 		if (!q) {
-			syntaxError("Error during syntax analysis");
+			syntaxError("Error during syntax analysis on rule E");
 			return nullptr;
 		}
 		getAndCheckLexem();
 		if (_currentLexem.type() != LexemType::rpar) {
-			syntaxError("Not matching lexem type: expected lpar; got " + _currentLexem.toString());
+			syntaxError("Not matching lexem type: expected - [rpar], got - [" + _currentLexem.toString() + "] on rule E1");
 			return nullptr;
 		}
 		return q;
@@ -333,18 +340,18 @@ std::shared_ptr<RValue> Translator::E1() {
 			generateAtoms(std::make_shared<BinaryOpAtom>("ADD", q, std::make_shared<NumberOperand>(1), q));
 			return q;
 		}
-		syntaxError("Not matching lexem type: expected id; got " + _currentLexem.toString());
+		syntaxError("Not matching lexem type: expected - [id], got - [" + _currentLexem.toString() + "] on rule E1");
 	}
 	if (_currentLexem.type() == LexemType::id) {
 		auto name = _currentLexem.str();
 		auto s = E1_(name);
 		if (!s) {
-			syntaxError("Error during syntax analysis");
+			syntaxError("Error during syntax analysis on rule E1_");
 			return nullptr;
 		}
 		return s;
 	}
-	syntaxError("Not matching lexem type: expected num, chr, id or ++; got " + _currentLexem.toString());
+	syntaxError("Not matching lexem type: expected - [num], [chr], [id] or [++], got - [" + _currentLexem.toString() + "] on rule E1");
 	return nullptr;
 }
 
@@ -365,9 +372,9 @@ std::shared_ptr<RValue> Translator::E1_(const std::string& p) {
 
 void Translator::startTranslation() {
 	E();
-	const Token& token = _scanner.getNextToken();
-	if (token != LexemType::eof) {
-		syntaxError("Syntax analysis ended, but additional token appears");
+	getAndCheckLexem(true);
+	if (_currentLexem != LexemType::eof) {
+		syntaxError("Syntax analysis was completed, but an additional lexeme appeared");
 	}
 }
 
@@ -379,8 +386,19 @@ const StringTable& Translator::getStringTable() const {
 	return _stringTable;
 }
 
-const std::deque<Token>& Translator::getLastLexems() const {
-	return _lastLexems;
+std::string Translator::getLastLexems() {
+	std::string lexemStr = "Last correctly read lexemes: ";
+	for (int i = 0; i < 4 - int(_lastLexems.size()); i++) {
+		lexemStr += "[nothing]";
+		if (i < 2) lexemStr += ", ";
+	}
+	while (_lastLexems.size() > 1) {
+		lexemStr += "[" + _lastLexems.front().toString() + "]";
+		if (_lastLexems.size() != 2) lexemStr += ", ";
+		_lastLexems.pop_front();
+	}
+	lexemStr += "\n";
+	return lexemStr;
 }
 
 
