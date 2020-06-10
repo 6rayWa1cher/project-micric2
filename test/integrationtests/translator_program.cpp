@@ -176,36 +176,107 @@ TEST(TranslatorProgramTests, Grammar2_1) {
 
 TEST(TranslatorProgramTests, Grammar2_18_28_29_30_31) {
 	SymbolTable expected = SymbolTableBuilder()
-		.withFunc("func", 2, "int")
-		.withVar("a", "int", 0, 0)
-		.withVar("b", "char", 0, 0)
-		.withVar("!temp1", "int", 0, 0)
-		.withVar("first", "int", 1, -1)
-		.withVar("x", "char", 65, -1)
-		.withFunc("g", 1, "int")
-		.withVar("f", "int", 0, 6)
-		.withVar("!temp2", "int", 0, 6)
-		.build();
+			.withFunc("func", 2, "int")
+			.withVar("a", "int", 0, 0)
+			.withVar("b", "char", 0, 0)
+			.withVar("!temp1", "int", 0, 0)
+			.withVar("first", "int", 1, -1)
+			.withVar("x", "char", 65, -1)
+			.withFunc("g", 1, "int")
+			.withVar("f", "int", 0, 6)
+			.withVar("!temp2", "int", 0, 6)
+			.build();
 	return assertStEquals(expected, getSymbolTableProgram("int func(int a, char b) {a = b - 2;}"
-														  "int first = 1;"
-														  "char x = 65;"
-														  "int g(int f) { first = func(first, x);}"));
+	                                                      "int first = 1;"
+	                                                      "char x = 65;"
+	                                                      "int g(int f) { first = func(first, x);}"));
 }
 
 TEST(TranslatorProgramTests, Grammar2_19_32) {
 	SymbolTable expected = SymbolTableBuilder()
-		.withVar("a", "int", 2, -1)
-		.withVar("b", "int", 4, -1)
-		.withFunc("func", 2, "int")
-		.withVar("a", "int", 0, 2)
-		.withVar("b", "int", 0, 2)
-		.withVar("!temp1", "int", 0, 2)
-		.withVar("!temp2", "int", 0, 2)
-		.build();
+			.withVar("a", "int", 2, -1)
+			.withVar("b", "int", 4, -1)
+			.withFunc("func", 2, "int")
+			.withVar("a", "int", 0, 2)
+			.withVar("b", "int", 0, 2)
+			.withVar("!temp1", "int", 0, 2)
+			.withVar("!temp2", "int", 0, 2)
+			.build();
 	return assertStEquals(expected, getSymbolTableProgram("int a = 2; int b = 4;"
-														  "int func(int a, int b) {"
-	  													  "while (a < b) { a = a + 1; }"
-														  "return a;}"));
+	                                                      "int func(int a, int b) {"
+	                                                      "while (a < b) { a = a + 1; }"
+	                                                      "return a;}"));
+}
+
+TEST(TranslatorProgramTests, Grammar2_44_45_48) {
+	std::vector<std::string> expected = {
+			"0\t(MUL, 1[a], `2`, 2[!temp1])",
+			"0\t(NE, 2[!temp1], `0`, L1)",
+			"0\t(MOV, `2`,, 1[a])",
+			"0\t(JMP,,, L0)",
+			"0\t(LBL,,, L1)",
+			"0\t(NE, 2[!temp1], `1`, L2)",
+			"0\t(MOV, `-2`,, 1[a])",
+			"0\t(JMP,,, L0)",
+			"0\t(LBL,,, L2)",
+			"0\t(JMP,,, L0)",
+			"0\t(LBL,,, L0)",
+			"0\t(RET,,, `0`)"
+	};
+	ASSERT_EQ(expected, getAtomsProgram(
+			"int main() {"
+			"   int a;"
+			"   switch(a * 2) {"
+			"       case 0: a = 2;"
+			"       case 1: a = -2;"
+			"   }"
+			"}"
+	));
+}
+
+TEST(TranslatorProgramTests, Grammar2_47_49) {
+	std::vector<std::string> expected = {
+			"0\t(MUL, 1[a], `2`, 2[!temp1])",
+			"0\t(NE, 2[!temp1], `0`, L1)",
+			"0\t(MOV, `2`,, 1[a])",
+			"0\t(JMP,,, L0)",
+			"0\t(LBL,,, L1)",
+			"0\t(NE, 2[!temp1], `1`, L2)",
+			"0\t(MOV, `-2`,, 1[a])",
+			"0\t(JMP,,, L0)",
+			"0\t(LBL,,, L2)",
+			"0\t(JMP,,, L3)",
+			"0\t(LBL,,, L4)",
+			"0\t(MOV, `-1`,, 1[a])",
+			"0\t(JMP,,, L0)",
+			"0\t(LBL,,, L3)",
+			"0\t(JMP,,, L4)",
+			"0\t(LBL,,, L0)",
+			"0\t(RET,,, `0`)"
+	};
+	ASSERT_EQ(expected, getAtomsProgram(
+			"int main() {"
+			"   int a;"
+			"   switch(a * 2) {"
+			"       case 0: a = 2;"
+			"       case 1: a = -2;"
+			"       default: a = -1;"
+			"   }"
+			"}"
+	));
+}
+
+TEST(TranslatorProgramTests, Grammar2_46) {
+	ASSERT_ANY_THROW(getAtomsProgram(
+			"int main() {"
+			"   int a;"
+			"   switch(a * 2) {"
+			"       case 0: a = 2;"
+			"       default: a = -2;"
+			"       default: a = -1;"
+			"   }"
+			"}"
+	));
 }
 
 TEST(TranslatorProgramTests, Grammar2_19_32_) {
