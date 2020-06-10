@@ -52,9 +52,24 @@ public:
 	}
 };
 
+class LocalTranslator : public Translator {
+public:
+	explicit LocalTranslator(std::istream& istream) : Translator(istream) {
+
+	}
+
+	void startTranslation() override {
+		StmtList(GLOBAL_SCOPE);
+		getAndCheckLexem(true);
+		if (_currentLexem != LexemType::eof) {
+			syntaxError("Syntax analysis was completed, but an additional lexeme appeared");
+		}
+	}
+};
+
 std::vector<std::string> getAtomsProgram(const std::string& s) {
 	auto iss = std::istringstream(s);
-	Translator translator(iss);
+	LocalTranslator translator(iss);
 	translator.startTranslation();
 	std::ostringstream oss;
 	translator.printAtoms(oss);
@@ -66,7 +81,7 @@ std::vector<std::string> getAtomsProgram(const std::string& s) {
 
 SymbolTable getSymbolTableProgram(const std::string& s) {
 	auto iss = std::istringstream(s);
-	Translator translator(iss);
+	LocalTranslator translator(iss);
 	translator.startTranslation();
 	return translator.getSymbolTable();
 }
@@ -277,6 +292,20 @@ TEST(TranslatorProgramTests, Grammar2_46) {
 			"   }"
 			"}"
 	));
+}
+
+TEST(TranslatorProgramTests, MainFunctionTest) {
+	try {
+		std::istringstream iss("int f() {int main = 0;}");
+		Translator translator(iss);
+		translator.startTranslation();
+		FAIL();
+	} catch (TranslationException exception) {
+		
+	}
+	std::istringstream iss("int main() {int main = 0;}");
+	Translator translator(iss);
+	translator.startTranslation();
 }
 
 #pragma clang diagnostic pop
