@@ -159,9 +159,9 @@ std::shared_ptr<MemoryOperand> SymbolTable::checkVar(Scope scope, const std::str
 
 std::shared_ptr<MemoryOperand> SymbolTable::checkFunc(const std::string& name, int len) {
 	int64_t recordIndex = findRecord(name, GLOBAL_SCOPE);
-	TableRecord& record = _records[recordIndex];
-	if (recordIndex == -1 || record._kind != SymbolTable::TableRecord::RecordKind::func ||
-	    record._len != len) {
+	TableRecord *record;
+	if (recordIndex == -1 || (record = &_records[recordIndex])->_kind != SymbolTable::TableRecord::RecordKind::func ||
+	    record->_len != len) {
 		return nullptr;
 	}
 	SymbolTable *st = this;

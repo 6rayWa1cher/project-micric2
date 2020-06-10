@@ -1094,7 +1094,7 @@ void Translator::startTranslation() {
 	if (_currentLexem != LexemType::eof) {
 		syntaxError("Syntax analysis was completed, but an additional lexeme appeared");
 	}
-	if (checkFunc("main", 0) == nullptr) {
+	if (_symbolTable.checkFunc("main", 0) == nullptr) {
 		syntaxError("A main function with 0 arguments expected, but it's not provided.");
 	}
 }
