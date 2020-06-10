@@ -418,15 +418,15 @@ std::shared_ptr<RValue> Translator::E1_(Scope scope, const std::string& p) {
 
 int Translator::ArgList(Scope scope) {
 	getAndCheckLexem(false);
-	if (_currentLexem.type() == LexemType::opnot ||  
-		_currentLexem.type() == LexemType::lpar ||
-		_currentLexem.type() == LexemType::num ||
-		_currentLexem.type() == LexemType::chr ||
-		_currentLexem.type() == LexemType::opinc ||
-		_currentLexem.type() == LexemType::id) {     // 1_32
+	if (_currentLexem.type() == LexemType::opnot ||
+	    _currentLexem.type() == LexemType::lpar ||
+	    _currentLexem.type() == LexemType::num ||
+	    _currentLexem.type() == LexemType::chr ||
+	    _currentLexem.type() == LexemType::opinc ||
+	    _currentLexem.type() == LexemType::id) {     // 1_32
 
 		pushBackLexem();
-		auto p = E(scope); 
+		auto p = E(scope);
 		if (!p) {
 			syntaxError();
 			return -1;
@@ -447,7 +447,7 @@ int Translator::ArgList(Scope scope) {
 int Translator::ArgList_(Scope scope) {
 	getAndCheckLexem(false);
 	if (_currentLexem.type() == LexemType::comma) { // 1_34
-		auto p = E(scope); 
+		auto p = E(scope);
 		if (!p) {
 			syntaxError();
 			return -1;
@@ -977,8 +977,11 @@ bool Translator::Cases(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<L
 
 bool Translator::Cases_(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<LabelOperand> end, std::shared_ptr<LabelOperand> def) {
 	getAndCheckLexem(false);
-	std::shared_ptr<LabelOperand> nullLabel(0);
-	if (_currentLexem.type() == LexemType::kwcase) { // 2_46   I hope, that kwcase lexem include `default`
+	LabelOperand nullLabel(0);
+	if (_currentLexem.type() == LexemType::kwcase || _currentLexem.type() == LexemType::kwdefault) { // 2_46
+		// T: I hope, that kwcase lexem include `default`
+		// 6W: well, it wasn't supposed. added recently
+		pushBackLexem();
 		auto q = p;
 		auto end1 = end;
 		auto def1 = ACase(scope, q, end1);
@@ -987,11 +990,10 @@ bool Translator::Cases_(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<
 			return false;
 		}
 		std::shared_ptr<LabelOperand> def2;
-		if (def >= nullLabel && def1 >= nullLabel) {
+		if (def != nullptr && def1 != nullptr && *def >= nullLabel && *def1 >= nullLabel) {
 			syntaxError("Two default section");
 			return false;
-		}
-		else def2 = std::max(def, def1);
+		} else def2 = def1 != nullptr && *def1 >= nullLabel ? def1 : def;
 		auto r = p;
 		auto end2 = end;
 		if (!Cases_(scope, r, end2, def2)) {
@@ -1002,17 +1004,19 @@ bool Translator::Cases_(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<
 	}
 	pushBackLexem();  // 2_47
 	std::shared_ptr<LabelOperand> q;
-	if (def >= nullLabel) q = def;
+	if (def != nullptr && *def >= nullLabel) q = def;
 	else q = end;
 	generateAtoms(scope, std::make_shared<JumpAtom>(q));
 	return true;
 }
 
 std::shared_ptr<LabelOperand> Translator::ACase(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<LabelOperand> end) {
-	if (_currentLexem.str() == "case") {  // 2_48
+	getAndCheckLexem(false, {LexemType::kwcase, LexemType::kwdefault});
+	if (_currentLexem.type() == LexemType::kwcase) {  // 2_48
 		getAndCheckLexem(false, {LexemType::num});
 		auto next = newLabel();
-		generateAtoms(scope, std::make_shared<ConditionalJumpAtom>("NE", p, std::make_shared<NumberOperand>(_currentLexem.value()), next));
+		generateAtoms(scope, std::make_shared<ConditionalJumpAtom>("NE", p, std::make_shared<NumberOperand>(
+				_currentLexem.value()), next));
 		getAndCheckLexem(false, {LexemType::colon});
 		if (!Stmt(scope)) {
 			syntaxError();
@@ -1021,9 +1025,8 @@ std::shared_ptr<LabelOperand> Translator::ACase(Scope scope, std::shared_ptr<RVa
 		generateAtoms(scope, std::make_shared<JumpAtom>(end));
 		generateAtoms(scope, std::make_shared<LabelAtom>(next));
 		return std::make_shared<LabelOperand>(-1);
-	}
-	else if (_currentLexem.str() == "default") {  // 2_49
-		getAndCheckLexem(false, { LexemType::colon });
+	} else if (_currentLexem.type() == LexemType::kwdefault) {  // 2_49
+		getAndCheckLexem(false, {LexemType::colon});
 		auto next = newLabel();
 		generateAtoms(scope, std::make_shared<JumpAtom>(next));
 		auto def = newLabel();
