@@ -25,7 +25,7 @@ std::string getFullFilename(std::string string) {
 
 int main(int argc, char **argv) {
 	std::ifstream ifile;
-	std::string filename = "prog1.minic", input, output;
+	std::string filename = "C:\\Users\\Throder\\source\\repos\\project-micric2\\test\\resources\\prog1.minic", input, output;
 	int i = 1;
 	std::string selfName = getFullFilename(argv[0]);
 	if (argc == 2 && (std::string(argv[1]) == "-h" || std::string(argv[1]) == "--help")) {
@@ -86,6 +86,8 @@ int main(int argc, char **argv) {
 		translator.printAtoms(ofile);
 		ofile << std::endl;
 		translator.printSymbolTable(ofile);
+		ofile << std::endl;
+		translator.printStringTable(ofile);
 		ofile.close();
 	} catch (TranslationException exception) {
 		std::cerr << "Exception during compiling:" << std::endl;

@@ -36,6 +36,8 @@ public:
 
 	void printSymbolTable(std::ostream& stream);
 
+	void printStringTable(std::ostream& stream);
+
 	void generateAtoms(Scope scope, std::shared_ptr<Atom> atom);
 
 	std::shared_ptr<LabelOperand> newLabel();
@@ -84,6 +86,10 @@ protected:
 
 	std::shared_ptr<RValue> E7_(Scope scope, std::shared_ptr<RValue> p);
 
+	int ArgList(Scope scope);
+
+	int ArgList_(Scope scope);
+
 	SymbolTable::TableRecord::RecordType Type(Scope scope);
 
 	bool InitVar(Scope scope, SymbolTable::TableRecord::RecordType recordType, const std::string& q);
@@ -101,6 +107,41 @@ protected:
 	bool DeclareStmt(Scope scope);
 
 	bool Stmt(Scope scope);
+
+	bool AssignOrCallOp(Scope scope);
+
+	bool WhileOp(Scope scope);
+
+	bool ForOp(Scope scope);
+
+	bool IfOp(Scope scope);
+
+	bool SwitchOp(Scope scope);
+
+	bool IOp(Scope scope);
+
+	bool OOp(Scope scope);
+
+	bool AssignOrCall(Scope scope);
+
+	bool AssignOrCall_(Scope scope, const std::string& p);
+
+	bool ForInit(Scope scope);
+
+	std::shared_ptr<RValue> ForExp(Scope scope);
+
+	bool ForLoop(Scope scope);
+
+	bool ElsePart(Scope scope);
+
+	bool Cases(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<LabelOperand> end);
+
+	bool Cases_(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<LabelOperand> end, std::shared_ptr<LabelOperand> def);
+
+	std::shared_ptr<LabelOperand> ACase(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<LabelOperand> end);
+
+	bool OOp_(Scope scope);
+
 };
 
 class TranslationException : public std::exception {

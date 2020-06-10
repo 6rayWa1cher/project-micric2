@@ -3,7 +3,9 @@
 //
 
 #include <algorithm>
+#include <iostream>
 #include "../include/StringTable.h"
+
 
 const std::string& StringTable::operator[](const unsigned int index) const {
 	return this->_strings[index];
@@ -20,4 +22,13 @@ std::shared_ptr<StringOperand> StringTable::add(const std::string& name) {
 	}
 	StringTable *st = this;
 	return std::make_shared<StringOperand>(index, st);
+}
+
+void StringTable::printStringTable(std::ostream& stream) {
+	stream << "STRING TABLE:" << std::endl;
+	for (size_t i = 0; i < 64; i++) stream << "-";
+	stream << std::endl;
+	for (size_t i = 0; i < _strings.size(); i++) {
+		stream << i << "       " << _strings[i] << std::endl;
+	}
 }

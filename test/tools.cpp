@@ -3,8 +3,6 @@
 //
 
 #include "tools.h"
-#include "../src/include/Translator.h"
-#include <sstream>
 
 std::vector<std::string> split(const std::string& string, char delimiter) {
 	std::vector<std::string> out;
@@ -21,8 +19,7 @@ std::vector<std::string> split(const std::string& string, char delimiter) {
 	return out;
 }
 
-std::vector<std::string>
-getAtomsExpression(const std::string& s, std::vector<std::string> vars, const Scope expectedScope) {
+std::vector<std::string> getAtomsExpression(const std::string& s, std::vector<std::string> vars, const Scope expectedScope) {
 	class LocalTranslator : public Translator {
 	private:
 		Scope _scope;

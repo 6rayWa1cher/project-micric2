@@ -5,9 +5,10 @@
 #ifndef PROJECT_MICRIC2_TOOLS_H
 #define PROJECT_MICRIC2_TOOLS_H
 
+#include "../src/include/Translator.h"
 #include <vector>
 #include <string>
-#include "../src/include/SymbolTable.h"
+#include <sstream>
 
 std::vector<std::string> split(const std::string& string, char delimiter);
 

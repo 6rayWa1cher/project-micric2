@@ -61,11 +61,13 @@ public:
 
 class LabelOperand : public Operand {
 protected:
-	unsigned int _labelId;
+	int _labelId;
 public:
-	LabelOperand(unsigned int labelId);
+	LabelOperand(int labelId);
 
 	std::string toString() const override;
+
+	bool operator>=(const LabelOperand& rhs) const;
 };
 
 class Atom {

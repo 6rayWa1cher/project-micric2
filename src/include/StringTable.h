@@ -17,6 +17,8 @@ public:
 	const std::string& operator[](const unsigned int index) const;
 
 	std::shared_ptr<StringOperand> add(const std::string& name);
+
+	void printStringTable(std::ostream& stream);
 };
 
 #endif //PROJECT_MICRIC2_STRINGTABLE_H

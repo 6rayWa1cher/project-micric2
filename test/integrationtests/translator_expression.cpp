@@ -146,8 +146,8 @@ TEST(TranslatorExpressionTests, Grammar1_22) {
 
 TEST(TranslatorExpressionTests, Grammar1_24) {
 	std::vector<std::string> expected = {
-			"(ADD, 1[b], 2[c], 3[!temp1])",
-			"(MUL, 0[a], 3[!temp1], 4[!temp2])"
+			"(ADD, 1[b], 2[c], 4[!temp2])",
+			"(MUL, 0[a], 4[!temp2], 3[!temp1])"
 	};
 	std::vector<std::string> actual = getAtomsExpression("a * (b + c)", {"a", "b", "c"});
 	ASSERT_EQ(expected, actual);
@@ -199,7 +199,6 @@ TEST(TranslatorExpressionTests, Grammar1_31) {
 	ASSERT_EQ(expected, actual);
 }
 
-
 TEST(TranslatorExpressionTests, BigTest1) {
 	std::vector<std::string> expected = {
 			"(MOV, `1`,, 4[!temp1])",
@@ -208,16 +207,16 @@ TEST(TranslatorExpressionTests, BigTest1) {
 			"(LBL,,, L0)",
 			"(MUL, 4[!temp1], `3`, 5[!temp2])",
 
-			"(SUB, `1`, `65`, 6[!temp3])",
-			"(MUL, 2[c], `2`, 7[!temp4])",
-			"(ADD, 6[!temp3], 7[!temp4], 8[!temp5])",
-			"(MOV, 3[d],, 9[!temp6])",
+			"(SUB, `1`, `65`, 7[!temp4])",
+			"(MUL, 2[c], `2`, 9[!temp6])",
+			"(ADD, 7[!temp4], 9[!temp6], 8[!temp5])",
+			"(MOV, 3[d],, 11[!temp8])",
 			"(ADD, 3[d], `1`, 3[d])",
-			"(SUB, 8[!temp5], 9[!temp6], 10[!temp7])",
+			"(SUB, 8[!temp5], 11[!temp8], 10[!temp7])",
 
-			"(MOV, `1`,, 11[!temp8])",
+			"(MOV, `1`,, 6[!temp3])",
 			"(GT, 5[!temp2], 10[!temp7], L1)",
-			"(MOV, `0`,, 11[!temp8])",
+			"(MOV, `0`,, 6[!temp3])",
 			"(LBL,,, L1)"
 	};
 	std::vector<std::string> actual = getAtomsExpression("(a == b) * 3 > 1 - 'A' + c * 2 - d++", {"a", "b", "c", "d"});
