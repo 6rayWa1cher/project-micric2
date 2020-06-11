@@ -1,5 +1,5 @@
 //
-// Created by 6rayWa1cher and Throder on 04.06.2020.
+// Created by 6rayWa1cher and Throder-TVRS on 04.06.2020.
 //
 
 #include "../include/Atoms.h"

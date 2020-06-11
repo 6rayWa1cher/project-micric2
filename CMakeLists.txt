@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+if (MINGW)
+    set(CMAKE_EXE_LINKER_FLAGS -static)
+endif ()
 
 configure_file(CMakeLists.txt.in pmicric-download/CMakeLists.txt)
 
