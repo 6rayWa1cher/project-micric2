@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <GlobalParameters.h>
 #include "Translator.h"
 
 std::string getFullFilename(std::string string) {
@@ -35,7 +36,8 @@ int main(int argc, char **argv) {
 		          << '\t' << selfName << " [options] -i [target]" << std::endl
 		          << "Options:" << std::endl
 		          << '\t' << "-i file" << '\t' << "Set target file" << std::endl
-		          << '\t' << "-o file" << '\t' << "Set output file" << std::endl;
+		          << '\t' << "-o file" << '\t' << "Set output file" << std::endl
+		          << '\t' << "-f" << '\t' << "Enable operator formatter (disabled by default)" << std::endl;
 		return 1;
 	}
 	while (i < argc) {
@@ -54,6 +56,9 @@ int main(int argc, char **argv) {
 			}
 			output = argv[i + 1];
 			i += 2;
+		} else if (input == "-f") {
+			GlobalParameters::getInstance().enableOperatorFormatter = true;
+			++i;
 		} else {
 			if (!input.empty())
 				filename = input;
