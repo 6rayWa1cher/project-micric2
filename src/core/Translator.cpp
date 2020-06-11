@@ -407,8 +407,9 @@ std::shared_ptr<RValue> Translator::E1_(Scope scope, const std::string& p) {
 	}
 
 	// 1_31
+	auto z = checkVar(scope, p);
 	pushBackLexem();
-	return checkVar(scope, p);
+	return z;
 }
 
 int Translator::ArgList(Scope scope) {
@@ -1094,14 +1095,24 @@ const StringTable& Translator::getStringTable() const {
 
 std::string Translator::getLastLexems() {
 	std::string lexemStr = "Last correctly read lexemes: ";
-	for (int i = 0; i < 4 - int(_lastLexems.size()); i++) {
-		lexemStr += "[nothing]";
-		if (i < 2) lexemStr += ", ";
+	std::deque<Token> st = _lastLexems;
+	if (st.size() < 3) {
+		for (size_t i = 0; i < st.size(); i++) {
+			lexemStr += "[nothing]";
+			if (i < 2) lexemStr += ", ";
+		}
+		while (!st.empty()) {
+			lexemStr += "[" + st.front().toString() + "]";
+			if (st.size() != 1) lexemStr += ", ";
+			st.pop_front();
+		}
 	}
-	while (_lastLexems.size() > 1) {
-		lexemStr += "[" + _lastLexems.front().toString() + "]";
-		if (_lastLexems.size() != 2) lexemStr += ", ";
-		_lastLexems.pop_front();
+	else {
+		for (size_t i = 0; i < 3; i++) {
+			lexemStr += "[" + st.front().toString() + "]";
+			if (i != 2) lexemStr += ", ";
+			st.pop_front();
+		}
 	}
 	lexemStr += "\n";
 	return lexemStr;
