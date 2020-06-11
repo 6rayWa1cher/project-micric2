@@ -36,8 +36,9 @@ getAtomsExpression(const std::string& s, std::vector<std::string> vars, const Sc
 
 		void startTranslation() override {
 			E(_scope);
-			getAndCheckLexem(true);
+			getAndCheckLexeme(true);
 			if (_currentLexem != LexemType::eof) {
+				pushBackLexem();
 				syntaxError("Syntax analysis was completed, but an additional lexeme appeared");
 			}
 		}

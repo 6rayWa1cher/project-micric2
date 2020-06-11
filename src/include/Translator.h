@@ -50,7 +50,7 @@ public:
 
 protected:
 
-	void getAndCheckLexem(bool eofAcceptable = false, const std::vector<LexemType>& acceptableLexems = {});
+	void getAndCheckLexeme(bool eofAcceptable = false, const std::vector<LexemType>& acceptableLexems = {});
 
 	std::shared_ptr<MemoryOperand> checkVar(const Scope scope, const std::string& name);
 

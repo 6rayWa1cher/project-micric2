@@ -15,6 +15,7 @@
 #pragma ide diagnostic ignored "cert-err58-cpp"
 
 TEST(StringTableTests, Overall) {
+	GlobalParameters::getInstance().enableOperatorFormatter = false;
 	StringTable table;
 	auto string = "Hello world!";
 	std::shared_ptr<StringOperand> ptr = table.add(string);
@@ -55,6 +56,7 @@ TEST(StringTableTests, OverallFormatter) {
 }
 
 TEST(SymbolTableTests, Overall) {
+	GlobalParameters::getInstance().enableOperatorFormatter = false;
 	SymbolTable table;
 	auto string = "meaningOfLife";
 	std::shared_ptr<MemoryOperand> ptr = table.addVar(string, 42, SymbolTable::TableRecord::RecordType::integer);

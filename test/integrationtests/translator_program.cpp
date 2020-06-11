@@ -61,7 +61,7 @@ public:
 
 	void startTranslation() override {
 		StmtList(GLOBAL_SCOPE);
-		getAndCheckLexem(true);
+		getAndCheckLexeme(true);
 		if (_currentLexem != LexemType::eof) {
 			syntaxError("Syntax analysis was completed, but an additional lexeme appeared");
 		}
@@ -408,9 +408,9 @@ TEST(TranslatorProgramTests, Grammar2_21_41_42_50_51_53) {
 TEST(TranslatorExceptionsTests, syntaxReadingArgListTest) {
 	std::ostringstream ss;
 	std::string expected = "SYNTAX ERROR: An unknown or a non-func name reference \"func\"\n"
-						   "Appeared on the 1 line.\n"
-						   "Current lexem: [rpar]\n"
-						   "Last correctly read lexemes: [id, \"a\"], [opplus], [opinc]\n";
+	                       "Appeared on the 1 line.\n"
+	                       "Current lexem: [rpar]\n"
+	                       "Last correctly read lexemes: [id, \"func\"], [lpar], [num, 0]\n";
 	try {
 		getAtomsProgram("int func(int a, int b) {;"
 						"}"
