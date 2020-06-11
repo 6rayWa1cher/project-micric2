@@ -3,6 +3,7 @@
 //
 
 #include "tools.h"
+#include "../src/include/GlobalParameters.h"
 
 std::vector<std::string> split(const std::string& string, char delimiter) {
 	std::vector<std::string> out;
@@ -21,6 +22,7 @@ std::vector<std::string> split(const std::string& string, char delimiter) {
 
 std::vector<std::string>
 getAtomsExpression(const std::string& s, std::vector<std::string> vars, const Scope expectedScope) {
+	GlobalParameters::getInstance().enableOperatorFormatter = true;
 	class LocalTranslator : public Translator {
 	private:
 		Scope _scope;

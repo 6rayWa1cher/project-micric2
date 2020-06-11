@@ -10,6 +10,7 @@
 #include "../../src/include/StringTable.h"
 #include "../../src/include/Translator.h"
 #include "../tools.h"
+#include "../../src/include/GlobalParameters.h"
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "cert-err58-cpp"
@@ -68,6 +69,7 @@ public:
 };
 
 std::vector<std::string> getAtomsProgram(const std::string& s) {
+	GlobalParameters::getInstance().enableOperatorFormatter = true;
 	auto iss = std::istringstream(s);
 	LocalTranslator translator(iss);
 	translator.startTranslation();
@@ -80,6 +82,7 @@ std::vector<std::string> getAtomsProgram(const std::string& s) {
 }
 
 SymbolTable getSymbolTableProgram(const std::string& s) {
+	GlobalParameters::getInstance().enableOperatorFormatter = true;
 	auto iss = std::istringstream(s);
 	LocalTranslator translator(iss);
 	translator.startTranslation();

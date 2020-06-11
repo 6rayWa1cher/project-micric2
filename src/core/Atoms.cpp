@@ -6,6 +6,7 @@
 
 #include "../include/StringTable.h"
 #include "../include/SymbolTable.h"
+#include "../include/GlobalParameters.h"
 
 Operand::Operand() = default;
 
@@ -17,7 +18,11 @@ MemoryOperand::MemoryOperand(size_t index, const SymbolTable *symbolTable) : _in
 }
 
 std::string MemoryOperand::toString() const {
-	return std::to_string(this->_index) + "[" + this->_symbolTable->operator[](this->_index) + ']';
+	if (GlobalParameters::getInstance().enableOperatorFormatter) {
+		return std::to_string(this->_index) + "[" + this->_symbolTable->operator[](this->_index) + ']';
+	} else {
+		return std::to_string(this->_index);
+	}
 }
 
 bool MemoryOperand::operator==(const MemoryOperand& rhs) const {
@@ -42,13 +47,21 @@ StringOperand::StringOperand(size_t index, const StringTable *stringTable) : _in
                                                                              _stringTable(stringTable) {}
 
 std::string StringOperand::toString() const {
-	return std::to_string(this->_index) + '{' + this->_stringTable->operator[](this->_index) + '}';
+	if (GlobalParameters::getInstance().enableOperatorFormatter) {
+		return std::to_string(this->_index) + '{' + this->_stringTable->operator[](this->_index) + '}';
+	} else {
+		return std::to_string(this->_index);
+	}
 }
 
 LabelOperand::LabelOperand(int labelId) : _labelId(labelId) {}
 
 std::string LabelOperand::toString() const {
-	return "L" + std::to_string(this->_labelId);
+	if (GlobalParameters::getInstance().enableOperatorFormatter) {
+		return "L" + std::to_string(this->_labelId);
+	} else {
+		return std::to_string(this->_labelId);
+	}
 }
 
 bool LabelOperand::operator>=(const LabelOperand& rhs) const {
