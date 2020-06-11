@@ -6,13 +6,10 @@
 #include "../../src/include/Atoms.h"
 #include "../../src/include/SymbolTable.h"
 #include "../../src/include/StringTable.h"
-#include "../../src/include/Translator.h"
 #include "../tools.h"
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "cert-err58-cpp"
-
-
 
 
 TEST(TranslatorExpressionTests, Grammar1_2) {

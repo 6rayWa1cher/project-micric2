@@ -21,7 +21,7 @@ private:
 	explicit SymbolTableBuilder(std::shared_ptr<SymbolTable> symbolTable) : st(std::move(symbolTable)) {
 	}
 
-	SymbolTable::TableRecord::RecordType toRecordType(const std::string& recordType) {
+	static SymbolTable::TableRecord::RecordType toRecordType(const std::string& recordType) {
 		if (recordType == "int")
 			return SymbolTable::TableRecord::RecordType::integer;
 		else if (recordType == "char")
@@ -86,7 +86,7 @@ SymbolTable getSymbolTableProgram(const std::string& s) {
 	return translator.getSymbolTable();
 }
 
-auto assertStEquals(SymbolTable st1, SymbolTable st2) {
+auto assertStEquals(const SymbolTable& st1, const SymbolTable& st2) {
 	std::stringstream ss1, ss2;
 	st1.printSymbolTable(ss1);
 	st2.printSymbolTable(ss2);
@@ -310,95 +310,95 @@ TEST(TranslatorProgramTests, MainFunctionTest) {
 
 TEST(TranslatorProgramTests, Grammar2_19_32_) {
 	auto actual = getAtomsProgram("int a = 2; int b = 4;"
-								  "int func(int a, int b) {"
-	  								"while (a < b) {  "
-										"a = a + 1;"
-									"}"
-									"return a;"
-								  "}");
+	                              "int func(int a, int b) {"
+	                              "while (a < b) {  "
+	                              "a = a + 1;"
+	                              "}"
+	                              "return a;"
+	                              "}");
 	std::vector<std::string> expected = {"2\t(LBL,,, L0)",
-										 "2\t(MOV, `1`,, 5[!temp1])",
-										 "2\t(LT, 3[a], 4[b], L2)",
-										 "2\t(MOV, `0`,, 5[!temp1])",
-										 "2\t(LBL,,, L2)",
-										 "2\t(EQ, 5[!temp1], `0`, L1)",
-										 "2\t(ADD, 3[a], `1`, 6[!temp2])",
-										 "2\t(MOV, 6[!temp2],, 3[a])",
-										 "2\t(JMP,,, L0)",
-										 "2\t(LBL,,, L1)",
-										 "2\t(RET,,, 3[a])",
-										 "2\t(RET,,, `0`)"};
+	                                     "2\t(MOV, `1`,, 5[!temp1])",
+	                                     "2\t(LT, 3[a], 4[b], L2)",
+	                                     "2\t(MOV, `0`,, 5[!temp1])",
+	                                     "2\t(LBL,,, L2)",
+	                                     "2\t(EQ, 5[!temp1], `0`, L1)",
+	                                     "2\t(ADD, 3[a], `1`, 6[!temp2])",
+	                                     "2\t(MOV, 6[!temp2],, 3[a])",
+	                                     "2\t(JMP,,, L0)",
+	                                     "2\t(LBL,,, L1)",
+	                                     "2\t(RET,,, 3[a])",
+	                                     "2\t(RET,,, `0`)"};
 	ASSERT_EQ(actual, expected);
 }
 
 TEST(TranslatorProgramTests, Grammar2_20_26_33_34_36_39_51_52) {
 	auto actual = getAtomsProgram("int func(int a, int b) {"
-									"for (a = 1; a < 2; ++a) {"
-										"for (b = 10; !(b == 15); ++b) {"
-											"out a + b;"
-										"} "
-									"}"
-									"return 0; "
-								  "}");
+	                              "for (a = 1; a < 2; ++a) {"
+	                              "for (b = 10; !(b == 15); ++b) {"
+	                              "out a + b;"
+	                              "} "
+	                              "}"
+	                              "return 0; "
+	                              "}");
 	std::vector<std::string> expected = {"0\t(MOV, `1`,, 1[a])",
-										 "0\t(LBL,,, L0)",
-										 "0\t(MOV, `1`,, 3[!temp1])",
-										 "0\t(LT, 1[a], `2`, L4)",
-										 "0\t(MOV, `0`,, 3[!temp1])",
-										 "0\t(LBL,,, L4)",
-										 "0\t(EQ, 3[!temp1], `0`, L3)",
-										 "0\t(JMP,,, L2)",
-										 "0\t(LBL,,, L1)",
-										 "0\t(ADD, 1[a], `1`, 1[a])",
-										 "0\t(JMP,,, L0)",
-										 "0\t(LBL,,, L2)",
-										 "0\t(MOV, `10`,, 2[b])",
-										 "0\t(LBL,,, L5)",
-										 "0\t(MOV, `1`,, 5[!temp3])",
-										 "0\t(EQ, 2[b], `15`, L9)",
-										 "0\t(MOV, `0`,, 5[!temp3])",
-										 "0\t(LBL,,, L9)",
-										 "0\t(NOT, 5[!temp3],, 4[!temp2])",
-										 "0\t(EQ, 4[!temp2], `0`, L8)",
-										 "0\t(JMP,,, L7)",
-										 "0\t(LBL,,, L6)",
-										 "0\t(ADD, 2[b], `1`, 2[b])",
-										 "0\t(JMP,,, L5)",
-										 "0\t(LBL,,, L7)",
-										 "0\t(ADD, 1[a], 2[b], 6[!temp4])",
-										 "0\t(OUT,,, 6[!temp4])",
-										 "0\t(JMP,,, L6)",
-										 "0\t(LBL,,, L8)",
-										 "0\t(JMP,,, L1)",
-										 "0\t(LBL,,, L3)",
-										 "0\t(RET,,, `0`)",
-										 "0\t(RET,,, `0`)" };
+	                                     "0\t(LBL,,, L0)",
+	                                     "0\t(MOV, `1`,, 3[!temp1])",
+	                                     "0\t(LT, 1[a], `2`, L4)",
+	                                     "0\t(MOV, `0`,, 3[!temp1])",
+	                                     "0\t(LBL,,, L4)",
+	                                     "0\t(EQ, 3[!temp1], `0`, L3)",
+	                                     "0\t(JMP,,, L2)",
+	                                     "0\t(LBL,,, L1)",
+	                                     "0\t(ADD, 1[a], `1`, 1[a])",
+	                                     "0\t(JMP,,, L0)",
+	                                     "0\t(LBL,,, L2)",
+	                                     "0\t(MOV, `10`,, 2[b])",
+	                                     "0\t(LBL,,, L5)",
+	                                     "0\t(MOV, `1`,, 5[!temp3])",
+	                                     "0\t(EQ, 2[b], `15`, L9)",
+	                                     "0\t(MOV, `0`,, 5[!temp3])",
+	                                     "0\t(LBL,,, L9)",
+	                                     "0\t(NOT, 5[!temp3],, 4[!temp2])",
+	                                     "0\t(EQ, 4[!temp2], `0`, L8)",
+	                                     "0\t(JMP,,, L7)",
+	                                     "0\t(LBL,,, L6)",
+	                                     "0\t(ADD, 2[b], `1`, 2[b])",
+	                                     "0\t(JMP,,, L5)",
+	                                     "0\t(LBL,,, L7)",
+	                                     "0\t(ADD, 1[a], 2[b], 6[!temp4])",
+	                                     "0\t(OUT,,, 6[!temp4])",
+	                                     "0\t(JMP,,, L6)",
+	                                     "0\t(LBL,,, L8)",
+	                                     "0\t(JMP,,, L1)",
+	                                     "0\t(LBL,,, L3)",
+	                                     "0\t(RET,,, `0`)",
+	                                     "0\t(RET,,, `0`)"};
 	ASSERT_EQ(actual, expected);
 }
 
 TEST(TranslatorProgramTests, Grammar2_21_41_42_50_51_53) {
 	auto actual = getAtomsProgram("int func(int aba, int caba) {"
-									"int x;"
-									"if(aba <= caba) {"
-										"in x;"
-									"}"
-									"else {"
-										"out \"abacaba\";"
-									"}"
-									"return 1;"
-								  "}");
-	std::vector<std::string> expected = { "0\t(MOV, `1`,, 4[!temp1])",
-										  "0\t(LE, 1[aba], 2[caba], L2)",
-										  "0\t(MOV, `0`,, 4[!temp1])",
-										  "0\t(LBL,,, L2)",
-										  "0\t(EQ, 4[!temp1], `0`, L0)",
-										  "0\t(IN,,, 3[x])",
-										  "0\t(JMP,,, L1)",
-										  "0\t(LBL,,, L0)",
-										  "0\t(OUT,,, 0{abacaba})",
-										  "0\t(LBL,,, L1)",
-										  "0\t(RET,,, `1`)",
-										  "0\t(RET,,, `0`)"};
+	                              "int x;"
+	                              "if(aba <= caba) {"
+	                              "in x;"
+	                              "}"
+	                              "else {"
+	                              "out \"abacaba\";"
+	                              "}"
+	                              "return 1;"
+	                              "}");
+	std::vector<std::string> expected = {"0\t(MOV, `1`,, 4[!temp1])",
+	                                     "0\t(LE, 1[aba], 2[caba], L2)",
+	                                     "0\t(MOV, `0`,, 4[!temp1])",
+	                                     "0\t(LBL,,, L2)",
+	                                     "0\t(EQ, 4[!temp1], `0`, L0)",
+	                                     "0\t(IN,,, 3[x])",
+	                                     "0\t(JMP,,, L1)",
+	                                     "0\t(LBL,,, L0)",
+	                                     "0\t(OUT,,, 0{abacaba})",
+	                                     "0\t(LBL,,, L1)",
+	                                     "0\t(RET,,, `1`)",
+	                                     "0\t(RET,,, `0`)"};
 	ASSERT_EQ(actual, expected);
 }
 

@@ -38,7 +38,7 @@ public:
 
 	void printStringTable(std::ostream& stream);
 
-	void generateAtoms(Scope scope, std::shared_ptr<Atom> atom);
+	void generateAtoms(Scope scope, const std::shared_ptr<Atom>& atom);
 
 	std::shared_ptr<LabelOperand> newLabel();
 
@@ -134,11 +134,13 @@ protected:
 
 	bool ElsePart(Scope scope);
 
-	bool Cases(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<LabelOperand> end);
+	bool Cases(Scope scope, const std::shared_ptr<RValue>& p, const std::shared_ptr<LabelOperand>& end);
 
-	bool Cases_(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<LabelOperand> end, std::shared_ptr<LabelOperand> def);
+	bool Cases_(Scope scope, const std::shared_ptr<RValue>& p, const std::shared_ptr<LabelOperand>& end,
+	            const std::shared_ptr<LabelOperand>& def);
 
-	std::shared_ptr<LabelOperand> ACase(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<LabelOperand> end);
+	std::shared_ptr<LabelOperand>
+	ACase(Scope scope, const std::shared_ptr<RValue>& p, const std::shared_ptr<LabelOperand>& end);
 
 	bool OOp_(Scope scope);
 

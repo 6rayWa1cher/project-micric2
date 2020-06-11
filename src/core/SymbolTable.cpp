@@ -8,12 +8,12 @@
 
 bool SymbolTable::TableRecord::operator==(const SymbolTable::TableRecord& rhs) const {
 	return (_name == rhs._name &&
-		_kind == rhs._kind &&
-		_type == rhs._type &&
-		_len == rhs._len &&
-		_init == rhs._init &&
-		_scope == rhs._scope &&
-		_offset == rhs._offset);
+	        _kind == rhs._kind &&
+	        _type == rhs._type &&
+	        _len == rhs._len &&
+	        _init == rhs._init &&
+	        _scope == rhs._scope &&
+	        _offset == rhs._offset);
 }
 
 bool SymbolTable::TableRecord::operator!=(const SymbolTable::TableRecord& rhs) const {
@@ -21,7 +21,7 @@ bool SymbolTable::TableRecord::operator!=(const SymbolTable::TableRecord& rhs) c
 }
 
 const std::string& SymbolTable::operator[](const unsigned int index) const {
-	return this->_records[index]._name;
+	return this->_records.at(index)._name;
 }
 
 std::shared_ptr<MemoryOperand> SymbolTable::alloc(Scope scope) {
@@ -32,7 +32,7 @@ size_t SymbolTable::size() const {
 	return this->_records.size();
 }
 
-void printNSymbols(std::ostream& stream, size_t n, std::string s) {
+void printNSymbols(std::ostream& stream, size_t n, const std::string& s) {
 	for (size_t i = 0; i < n; i++) stream << s;
 }
 
@@ -66,22 +66,18 @@ void SymbolTable::printSymbolTable(std::ostream& stream) const {
 		printNSymbols(stream, 8 - _records[i]._name.size(), " ");
 		if (_records[i]._kind == TableRecord::RecordKind::unknown) {
 			stream << "unknown ";
-		}
-		else if (_records[i]._kind == TableRecord::RecordKind::var) {
+		} else if (_records[i]._kind == TableRecord::RecordKind::var) {
 			stream << "var";
 			printNSymbols(stream, 5, " ");
-		}
-		else if (_records[i]._kind == TableRecord::RecordKind::func) {
+		} else if (_records[i]._kind == TableRecord::RecordKind::func) {
 			stream << "func";
 			printNSymbols(stream, 4, " ");
 		}
 		if (_records[i]._type == TableRecord::RecordType::unknown) {
 			stream << "unknown ";
-		}
-		else if (_records[i]._type == TableRecord::RecordType::integer) {
+		} else if (_records[i]._type == TableRecord::RecordType::integer) {
 			stream << "integer ";
-		}
-		else if (_records[i]._type == TableRecord::RecordType::chr) {
+		} else if (_records[i]._type == TableRecord::RecordType::chr) {
 			stream << "chr";
 			printNSymbols(stream, 5, " ");
 		}
@@ -166,10 +162,6 @@ std::shared_ptr<MemoryOperand> SymbolTable::checkFunc(const std::string& name, i
 	}
 	SymbolTable *st = this;
 	return std::make_shared<MemoryOperand>(recordIndex, st);
-}
-
-size_t SymbolTable::getNextIndex() const {
-	return _records.size();
 }
 
 bool SymbolTable::operator==(const SymbolTable& rhs) const {

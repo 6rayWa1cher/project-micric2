@@ -73,6 +73,7 @@ public:
 class Atom {
 public:
 	Atom();
+
 	virtual std::string toString() const = 0;
 };
 

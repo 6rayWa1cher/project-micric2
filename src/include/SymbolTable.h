@@ -4,6 +4,7 @@
 
 #ifndef PROJECT_MICRIC2_SYMBOLTABLE_H
 #define PROJECT_MICRIC2_SYMBOLTABLE_H
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -47,8 +48,6 @@ public:
 	const std::string& operator[](const unsigned int index) const;
 
 	size_t size() const;
-
-	size_t getNextIndex() const;
 
 	std::shared_ptr<MemoryOperand> addVar(const std::string& name,
 	                                      const Scope scope, TableRecord::RecordType type,
