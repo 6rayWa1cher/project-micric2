@@ -141,12 +141,12 @@ TEST(SymbolTableTests, LongNamePrintTableTest) {
 		"0       a                             var     integer None    0       -1      -1      \n"
 		"1       b                             var     chr     None    0       -1      -1      \n"
 		"2       !temp1                        var     integer None    0       -1      -1      \n"
-		"3       OhThatReallyLongFinctionName  func    integer 2       0       -1      -1      \n";
+		"3       OhThatReallyLongFunctionName  func    integer 2       0       -1      -1      \n";
 	SymbolTable symbolTable;
 	symbolTable.addVar("a", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::integer);
 	symbolTable.addVar("b", GLOBAL_SCOPE, SymbolTable::TableRecord::RecordType::chr);
 	symbolTable.alloc(GLOBAL_SCOPE);
-	symbolTable.addFunc("OhThatReallyLongFinctionName", SymbolTable::TableRecord::RecordType::integer, 2);
+	symbolTable.addFunc("OhThatReallyLongFunctionName", SymbolTable::TableRecord::RecordType::integer, 2);
 	std::ostringstream ss;
 	symbolTable.printSymbolTable(ss);
 	ASSERT_EQ(expected, ss.str());
