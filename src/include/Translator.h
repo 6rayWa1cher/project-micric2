@@ -1,5 +1,5 @@
 //
-// Created by Throder and 6rayWa1cher on 05.06.2020.
+// Created by Throder-TVRS and 6rayWa1cher on 05.06.2020.
 //
 #ifndef PROJECT_MICRIC2_TRANSLATOR_H
 #define PROJECT_MICRIC2_TRANSLATOR_H
@@ -18,9 +18,9 @@ protected:
 	SymbolTable _symbolTable;
 	StringTable _stringTable;
 	Scanner _scanner;
-	Token _currentLexem;
+	Token _currentLexeme;
 
-	std::deque<Token> _lastLexems;
+	std::deque<Token> _lastLexemes;
 
 	size_t _labelCount;
 public:
@@ -46,7 +46,7 @@ public:
 
 	void lexicalError(const std::string& message);
 
-	std::string getLastLexems();
+	std::string getLastLexemes();
 
 protected:
 
@@ -56,7 +56,7 @@ protected:
 
 	std::shared_ptr<MemoryOperand> checkFunc(const std::string& name, int len);
 
-	void pushBackLexem();
+	void pushBackLexeme();
 
 	std::shared_ptr<RValue> E(Scope scope);
 

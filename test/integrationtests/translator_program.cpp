@@ -1,5 +1,5 @@
 //
-// Created by 6rayWa1cher on 08.06.2020.
+// Created by 6rayWa1cher and Throder-TVRS on 08.06.2020.
 //
 
 #include <gtest/gtest.h>
@@ -62,7 +62,7 @@ public:
 	void startTranslation() override {
 		StmtList(GLOBAL_SCOPE);
 		getAndCheckLexeme(true);
-		if (_currentLexem != LexemType::eof) {
+		if (_currentLexeme != LexemType::eof) {
 			syntaxError("Syntax analysis was completed, but an additional lexeme appeared");
 		}
 	}
