@@ -37,15 +37,17 @@ void printNSymbols(std::ostream& stream, size_t n, std::string s) {
 }
 
 void SymbolTable::printSymbolTable(std::ostream& stream) const {
-	//Designed for a column length of not more than 8
-	//For function names or variables of greater length, it is necessary to rework
+	size_t nameSpace = 8;
+	for (const auto& record : _records) {
+		nameSpace = std::max(nameSpace, record._name.size());
+	}
 	stream << "SYMBOL TABLE" << std::endl;
-	printNSymbols(stream, 64, "-");
+	printNSymbols(stream, 56 + nameSpace + 2, "-");
 	stream << std::endl;
 	stream << "code";
 	printNSymbols(stream, 4, " ");
 	stream << "name";
-	printNSymbols(stream, 4, " ");
+	printNSymbols(stream, nameSpace - 2, " ");
 	stream << "kind";
 	printNSymbols(stream, 4, " ");
 	stream << "type";
@@ -63,7 +65,7 @@ void SymbolTable::printSymbolTable(std::ostream& stream) const {
 		stream << i;
 		printNSymbols(stream, 8 - std::to_string(i).size(), " ");
 		stream << _records[i]._name;
-		printNSymbols(stream, 8 - _records[i]._name.size(), " ");
+		printNSymbols(stream, nameSpace - _records[i]._name.size() + 2, " ");
 		if (_records[i]._kind == TableRecord::RecordKind::unknown) {
 			stream << "unknown ";
 		}
@@ -85,8 +87,13 @@ void SymbolTable::printSymbolTable(std::ostream& stream) const {
 			stream << "chr";
 			printNSymbols(stream, 5, " ");
 		}
-		stream << _records[i]._len;
-		printNSymbols(stream, 8 - std::to_string(_records[i]._len).size(), " ");
+		if (_records[i]._len == -1) {
+			stream << "None    ";
+		}
+		else {
+			stream << _records[i]._len;
+			printNSymbols(stream, 8 - std::to_string(_records[i]._len).size(), " ");
+		}
 		stream << _records[i]._init;
 		printNSymbols(stream, 8 - std::to_string(_records[i]._init).size(), " ");
 		stream << _records[i]._scope;

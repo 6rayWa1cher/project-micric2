@@ -25,7 +25,7 @@ std::string getFullFilename(std::string string) {
 
 int main(int argc, char **argv) {
 	std::ifstream ifile;
-	std::string filename = "prog.minic", input, output; // STOP RENAMING FILENAME!
+	std::string filename = "prog1.minic", input, output; // STOP RENAMING FILENAME!
 	int i = 1;
 	std::string selfName = getFullFilename(argv[0]);
 	if (argc == 2 && (std::string(argv[1]) == "-h" || std::string(argv[1]) == "--help")) {
