@@ -362,7 +362,7 @@ TEST(TranslatorExceptionsTests, lexicalUnknownSymbolTest) {
 
 TEST(TranslatorExceptionsTests, syntaxReachedEOFBeforeEndTest) {
 	std::ostringstream ss;
-	std::string expected = "SYNTAX ERROR: Reached EOF before end of a syntax analysis\n"
+	std::string expected = "SYNTAX ERROR: Reached EOF before the end of syntax analysis\n"
 	                       "Appeared on the 1 line.\n"
 	                       "Current lexem: [eof]\n"
 	                       "Last correctly read lexemes: [nothing], [nothing], [nothing]\n";
@@ -392,7 +392,7 @@ TEST(TranslatorExceptionsTests, syntaxAdditionalLexemeAppearedTest) {
 
 TEST(TranslatorExceptionsTests, syntaxExpectedRparTest) {
 	std::ostringstream ss;
-	std::string expected = "SYNTAX ERROR: Not matching lexem type: expected - [rpar], got - [id, \"b\"]\n"
+	std::string expected = "SYNTAX ERROR: Not matching lexeme type: expected - [rpar], got - [id, \"b\"]\n"
 	                       "Appeared on the 1 line.\n"
 	                       "Current lexem: [id, \"b\"]\n"
 	                       "Last correctly read lexemes: [lpar], [id, \"a\"], [opinc]\n";
@@ -407,7 +407,7 @@ TEST(TranslatorExceptionsTests, syntaxExpectedRparTest) {
 
 TEST(TranslatorExceptionsTests, syntaxExpectedNumChrTest) {
 	std::ostringstream ss;
-	std::string expected = "SYNTAX ERROR: Not matching lexem type: expected - [lpar], [num], [chr], [opinc] or [id], got - [rpar]\n"
+	std::string expected = "SYNTAX ERROR: Not matching lexeme type: expected - [lpar], [num], [chr], [opinc] or [id], got - [rpar]\n"
 	                       "Appeared on the 1 line.\n"
 	                       "Current lexem: [rpar]\n"
 	                       "Last correctly read lexemes: [nothing], [nothing], [lpar]\n";
@@ -422,7 +422,7 @@ TEST(TranslatorExceptionsTests, syntaxExpectedNumChrTest) {
 
 TEST(TranslatorExceptionsTests, syntaxExpectedIdTest) {
 	std::ostringstream ss;
-	std::string expected = "SYNTAX ERROR: Not matching lexem type: expected - [id], got - [lpar]\n"
+	std::string expected = "SYNTAX ERROR: Not matching lexeme type: expected - [id], got - [lpar]\n"
 	                       "Appeared on the 1 line.\n"
 	                       "Current lexem: [lpar]\n"
 	                       "Last correctly read lexemes: [id, \"a\"], [opplus], [opinc]\n";

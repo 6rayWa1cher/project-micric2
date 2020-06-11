@@ -5,11 +5,7 @@
 #include "../include/Translator.h"
 
 #include <algorithm>
-#include <utility>
 #include <sstream>
-#include "../include/Atoms.h"
-#include "../include/StringTable.h"
-#include "../include/SymbolTable.h"
 
 
 Translator::Translator(std::istream& inputStream) : _scanner(Scanner(inputStream)) {
@@ -33,7 +29,7 @@ void Translator::printStringTable(std::ostream& stream) {
 	_stringTable.printStringTable(stream);
 }
 
-void Translator::generateAtoms(Scope scope, std::shared_ptr<Atom> atom) {
+void Translator::generateAtoms(Scope scope, const std::shared_ptr<Atom>& atom) {
 	_atoms.emplace(scope, std::vector<std::shared_ptr<Atom>>());
 	_atoms[scope].push_back(atom);
 }
@@ -72,12 +68,12 @@ void Translator::getAndCheckLexem(bool eofAcceptable, const std::vector<LexemTyp
 		lexicalError(_currentLexem.toString());
 	}
 	if (!eofAcceptable && lexemType == LexemType::eof) {
-		syntaxError("Reached EOF before end of a syntax analysis");
+		syntaxError("Reached EOF before the end of syntax analysis");
 	}
 	if (!acceptableLexems.empty() &&
 	    std::find(acceptableLexems.begin(), acceptableLexems.end(), lexemType) == acceptableLexems.end()) {
 		std::stringstream ss;
-		ss << "Not matching lexem type: expected - ";
+		ss << "Not matching lexeme type: expected - ";
 		for (int i = 0; i < acceptableLexems.size(); ++i) {
 			const LexemType accLexem = acceptableLexems[i];
 			if (i == 0) {
@@ -234,7 +230,7 @@ std::shared_ptr<RValue> Translator::E5_(Scope scope, std::shared_ptr<RValue> p) 
 				generateAtoms(scope, std::make_shared<ConditionalJumpAtom>("LE", p, r, l));
 				break;
 			default:
-				syntaxError("Unexpected operator on rule E5_");
+				syntaxError("An unexpected operator on rule E5_ appeared");
 		}
 		generateAtoms(scope, std::make_shared<UnaryOpAtom>("MOV", std::make_shared<NumberOperand>(0), s));
 		generateAtoms(scope, std::make_shared<LabelAtom>(l));
@@ -380,7 +376,7 @@ std::shared_ptr<RValue> Translator::E1(Scope scope) {
 		}
 		return s;
 	}
-	syntaxError("Undefined lexeme on rule E1");
+	syntaxError("An unexpected lexeme on rule E1 appeared");
 	return nullptr;
 }
 
@@ -393,8 +389,7 @@ std::shared_ptr<RValue> Translator::E1_(Scope scope, const std::string& p) {
 		generateAtoms(scope, std::make_shared<UnaryOpAtom>("MOV", s, r));
 		generateAtoms(scope, std::make_shared<BinaryOpAtom>("ADD", s, std::make_shared<NumberOperand>(1), s));
 		return r;
-	}
-	else if (_currentLexem.type() == LexemType::lpar) { // 1_30
+	} else if (_currentLexem.type() == LexemType::lpar) { // 1_30
 		auto r = _symbolTable.alloc(scope);
 		int n = ArgList(scope);
 		if (n == -1) {
@@ -406,7 +401,7 @@ std::shared_ptr<RValue> Translator::E1_(Scope scope, const std::string& p) {
 			syntaxError("Error on rule E1_; The number of function arguments does not match the definition");
 			return nullptr;
 		}
-		getAndCheckLexem(false, { LexemType::rpar });
+		getAndCheckLexem(false, {LexemType::rpar});
 		generateAtoms(scope, std::make_shared<CallAtom>(s, r));
 		return r;
 	}
@@ -498,7 +493,7 @@ bool Translator::DeclareStmt_(Scope scope, SymbolTable::TableRecord::RecordType 
 		getAndCheckLexem(false, {LexemType::rpar});
 		getAndCheckLexem(false, {LexemType::lbrace});
 		if (!StmtList(newScope)) {
-			syntaxError("Error while difinition of function body on StmtList");
+			syntaxError("Error in the definition of function body on StmtList");
 			return false;
 		}
 		getAndCheckLexem(false, {LexemType::rbrace});
@@ -532,7 +527,7 @@ SymbolTable::TableRecord::RecordType Translator::Type(Scope scope) {
 	} else if (_currentLexem.type() == LexemType::kwint) { // 2_6
 		return SymbolTable::TableRecord::RecordType::integer;
 	} else {
-		syntaxError("Unknown lexeme type");
+		syntaxError("An unknown lexeme type appeared");
 		return SymbolTable::TableRecord::RecordType::unknown;
 	}
 }
@@ -577,7 +572,7 @@ int Translator::ParamList(Scope scope) {
 		pushBackLexem();
 		auto q = Type(scope);
 		if (q == SymbolTable::TableRecord::RecordType::unknown) {
-			syntaxError("Unknown type of variable");
+			syntaxError("An unknown type of variable");
 			return -1;
 		}
 		getAndCheckLexem(false, {LexemType::id});
@@ -600,7 +595,7 @@ int Translator::ParamList_(Scope scope) {
 	if (_currentLexem.type() == LexemType::comma) { // 2_13
 		auto q = Type(scope);
 		if (q == SymbolTable::TableRecord::RecordType::unknown) {
-			syntaxError("Unknown type of variable");
+			syntaxError("An unknown type of variable");
 			return -1;
 		}
 		getAndCheckLexem(false, {LexemType::id});
@@ -636,11 +631,11 @@ bool Translator::StmtList(Scope scope) {
 	if (std::find(continueVector.begin(), continueVector.end(), _currentLexem.type()) != continueVector.end()) {
 		pushBackLexem();
 		if (!Stmt(scope)) {
-			syntaxError("Syntax error on rule Stmt");
+			syntaxError("Error during syntax analysis on rule Stmt");
 			return false;
 		}
 		if (!StmtList(scope)) {
-			syntaxError("Syntax error on rule StmtList");
+			syntaxError("Error during syntax analysis on rule StmtList");
 			return false;
 		}
 		return true;
@@ -661,7 +656,7 @@ bool Translator::Stmt(Scope scope) {
 		return true;
 	}
 	if (scope == GLOBAL_SCOPE) {
-		syntaxError("Operator usage outside of any function");
+		syntaxError("The operator is outside of any function");
 		return false;
 	}
 	if (_currentLexem.type() == LexemType::id) { // 2_18
@@ -670,71 +665,62 @@ bool Translator::Stmt(Scope scope) {
 			return false;
 		}
 		return true;
-	}
-	else if (_currentLexem.type() == LexemType::kwwhile) { // 2_19
+	} else if (_currentLexem.type() == LexemType::kwwhile) { // 2_19
 		if (!WhileOp(scope)) {
 			syntaxError("Error during syntax analysis on rule WhileOp");
 			return false;
 		}
 		return true;
-	}
-	else if (_currentLexem.type() == LexemType::kwfor) { // 2_20
+	} else if (_currentLexem.type() == LexemType::kwfor) { // 2_20
 		if (!ForOp(scope)) {
 			syntaxError("Error during syntax analysis on rule ForOp");
 			return false;
 		}
 		return true;
-	}
-	else if (_currentLexem.type() == LexemType::kwif) { // 2_21
+	} else if (_currentLexem.type() == LexemType::kwif) { // 2_21
 		if (!IfOp(scope)) {
 			syntaxError("Error during syntax analysis on rule IfOp");
 			return false;
 		}
 		return true;
-	}
-	else if (_currentLexem.type() == LexemType::kwswitch) { // 2_22
+	} else if (_currentLexem.type() == LexemType::kwswitch) { // 2_22
 		if (!SwitchOp(scope)) {
 			syntaxError("Error during syntax analysis on rule SwitchOp");
 			return false;
 		}
 		return true;
-	}
-	else if (_currentLexem.type() == LexemType::kwin) {  // 2_23
+	} else if (_currentLexem.type() == LexemType::kwin) {  // 2_23
 		if (!IOp(scope)) {
 			syntaxError("Error during syntax analysis on rule IOp");
 			return false;
 		}
 		return true;
-	}
-	else if (_currentLexem.type() == LexemType::kwout) {  // 2_24
+	} else if (_currentLexem.type() == LexemType::kwout) {  // 2_24
 		if (!OOp(scope)) {
 			syntaxError("Error during syntax analysis on rule OOp");
 			return false;
 		}
 		return true;
-	}
-	else if (_currentLexem.type() == LexemType::lbrace) {	// 2_25
+	} else if (_currentLexem.type() == LexemType::lbrace) {    // 2_25
 		if (!StmtList(scope)) {
 			syntaxError("Error during syntax analysis on rule StmtList");
 			return false;
 		}
 		getAndCheckLexem(false, {LexemType::rbrace});
 		return true;
-	}
-	else if (_currentLexem.type() == LexemType::kwreturn) {	// 2_26
+	} else if (_currentLexem.type() == LexemType::kwreturn) {    // 2_26
 		auto p = E(scope);
 		if (!p) {
 			syntaxError("Error during syntax analysis on rule E");
 			return false;
 		}
 		generateAtoms(scope, std::make_shared<RetAtom>(p));
-		getAndCheckLexem(false, { LexemType::semicolon });
+		getAndCheckLexem(false, {LexemType::semicolon});
+		return true;
+	} else if (_currentLexem.type() == LexemType::semicolon) {    // 2_27
 		return true;
 	}
-	else if (_currentLexem.type() == LexemType::semicolon) {	// 2_27
-		return true;
-	}
-	syntaxError("Undefined lexem on rule StmtList");
+	syntaxError("An undefined lexeme on rule StmtList appeared");
 	return false;
 }
 
@@ -743,7 +729,7 @@ bool Translator::AssignOrCallOp(Scope scope) {
 		syntaxError("Error during syntax analysis on rule AssignOrCall");
 		return false;
 	}
-	getAndCheckLexem(false, { LexemType::semicolon });
+	getAndCheckLexem(false, {LexemType::semicolon});
 	return true;
 }
 
@@ -767,12 +753,11 @@ bool Translator::AssignOrCall_(Scope scope, const std::string& p) {
 		auto r = checkVar(scope, p);
 		generateAtoms(scope, std::make_shared<UnaryOpAtom>("MOV", q, r));
 		return true;
-	}
-	else if (_currentLexem.type() == LexemType::lpar) { // 2_31
+	} else if (_currentLexem.type() == LexemType::lpar) { // 2_31
 		auto r = _symbolTable.alloc(scope);
 		int n = ArgList(scope);
 		if (n == -1) {
-			syntaxError("Error reading argument in ArgList");
+			syntaxError("Error while reading arguments in Arglist");
 			return false;
 		}
 		auto q = checkFunc(p, n);
@@ -785,7 +770,7 @@ bool Translator::AssignOrCall_(Scope scope, const std::string& p) {
 		return true;
 	}
 
-	syntaxError("Undefined lexeme on rule AssignOrCall_");
+	syntaxError("An undefined lexeme on rule AssignOrCall_ appeared");
 	return false;
 }
 
@@ -793,13 +778,13 @@ bool Translator::WhileOp(Scope scope) { // 2_32
 	auto l1 = newLabel();
 	auto l2 = newLabel();
 	generateAtoms(scope, std::make_shared<LabelAtom>(l1));
-	getAndCheckLexem(false, { LexemType::lpar });
+	getAndCheckLexem(false, {LexemType::lpar});
 	auto p = E(scope);
 	if (!p) {
 		syntaxError("Error on rule E1_; The number of function arguments does not match the definition");
 		return false;
 	}
-	getAndCheckLexem(false, { LexemType::rpar });
+	getAndCheckLexem(false, {LexemType::rpar});
 	generateAtoms(scope, std::make_shared<ConditionalJumpAtom>("EQ", p, std::make_shared<NumberOperand>(0), l2));
 	if (!Stmt(scope)) {
 		syntaxError("Error during syntax analysis on rule Stmt");
@@ -811,7 +796,7 @@ bool Translator::WhileOp(Scope scope) { // 2_32
 }
 
 bool Translator::ForOp(Scope scope) { // 2_33
-	getAndCheckLexem(false, { LexemType::lpar });
+	getAndCheckLexem(false, {LexemType::lpar});
 	auto l1 = newLabel();
 	auto l2 = newLabel();
 	auto l3 = newLabel();
@@ -820,14 +805,14 @@ bool Translator::ForOp(Scope scope) { // 2_33
 		syntaxError("Error during syntax analysis on rule ForInit");
 		return false;
 	}
-	getAndCheckLexem(false, { LexemType::semicolon });
+	getAndCheckLexem(false, {LexemType::semicolon});
 	generateAtoms(scope, std::make_shared<LabelAtom>(l1));
 	auto p = ForExp(scope);
 	if (!p) {
 		syntaxError("Error during syntax analysis on rule ForExp");
 		return false;
 	}
-	getAndCheckLexem(false, { LexemType::semicolon });
+	getAndCheckLexem(false, {LexemType::semicolon});
 	generateAtoms(scope, std::make_shared<ConditionalJumpAtom>("EQ", p, std::make_shared<NumberOperand>(0), l4));
 	generateAtoms(scope, std::make_shared<JumpAtom>(l3));
 	generateAtoms(scope, std::make_shared<LabelAtom>(l2));
@@ -836,7 +821,7 @@ bool Translator::ForOp(Scope scope) { // 2_33
 		return false;
 	}
 	generateAtoms(scope, std::make_shared<JumpAtom>(l1));
-	getAndCheckLexem(false, { LexemType::rpar });
+	getAndCheckLexem(false, {LexemType::rpar});
 	generateAtoms(scope, std::make_shared<LabelAtom>(l3));
 	if (!Stmt(scope)) {
 		syntaxError("Error during syntax analysis on rule Stmt");
@@ -863,11 +848,11 @@ bool Translator::ForInit(Scope scope) {
 std::shared_ptr<RValue> Translator::ForExp(Scope scope) {
 	getAndCheckLexem(false);
 	if (_currentLexem.type() == LexemType::opnot ||
-		_currentLexem.type() == LexemType::lpar ||
-		_currentLexem.type() == LexemType::num ||
-		_currentLexem.type() == LexemType::chr ||
-		_currentLexem.type() == LexemType::opinc ||
-		_currentLexem.type() == LexemType::id) {  // 2_36
+	    _currentLexem.type() == LexemType::lpar ||
+	    _currentLexem.type() == LexemType::num ||
+	    _currentLexem.type() == LexemType::chr ||
+	    _currentLexem.type() == LexemType::opinc ||
+	    _currentLexem.type() == LexemType::id) {  // 2_36
 		pushBackLexem();
 		auto q = E(scope);
 		if (!q) {
@@ -888,8 +873,7 @@ bool Translator::ForLoop(Scope scope) {
 			return false;
 		}
 		return true;
-	}
-	else if (_currentLexem.type() == LexemType::opinc) { // 2_39
+	} else if (_currentLexem.type() == LexemType::opinc) { // 2_39
 		getAndCheckLexem(false, {LexemType::id});
 		auto name = _currentLexem.str();
 		auto p = checkVar(scope, name);
@@ -946,28 +930,28 @@ bool Translator::SwitchOp(Scope scope) {
 		syntaxError("Error during syntax analysis on rule SwithcOp");
 		return false;
 	}
-	getAndCheckLexem(false, { LexemType::rpar });
-	getAndCheckLexem(false, { LexemType::lbrace });
+	getAndCheckLexem(false, {LexemType::rpar});
+	getAndCheckLexem(false, {LexemType::lbrace});
 	if (!Cases(scope, p, end)) {
 		syntaxError("Error during syntax analysis on rule Cases");
 		return false;
 	}
-	getAndCheckLexem(false, { LexemType::rbrace });
+	getAndCheckLexem(false, {LexemType::rbrace});
 	generateAtoms(scope, std::make_shared<LabelAtom>(end));
 	return true;
 }
 
-bool Translator::Cases(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<LabelOperand> end) {
-	auto q = p;			// 2_45
-	auto end1 = end;
+bool Translator::Cases(Scope scope, const std::shared_ptr<RValue>& p, const std::shared_ptr<LabelOperand>& end) {
+	auto& q = p;            // 2_45
+	auto& end1 = end;
 	auto def1 = ACase(scope, q, end1);
 	if (!def1) {
 		syntaxError("Error during syntax analysis on rule ACase");
 		return false;
 	}
-	auto r = p;
-	auto end2 = end;
-	auto def2 = def1;
+	const auto& r = p;
+	const auto& end2 = end;
+	const auto& def2 = def1;
 	if (!Cases_(scope, r, end2, def2)) {
 		syntaxError("Error during syntax analysis on rule Cases_");
 		return false;
@@ -975,15 +959,16 @@ bool Translator::Cases(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<L
 	return true;
 }
 
-bool Translator::Cases_(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<LabelOperand> end, std::shared_ptr<LabelOperand> def) {
+bool Translator::Cases_(Scope scope, const std::shared_ptr<RValue>& p, const std::shared_ptr<LabelOperand>& end,
+                        const std::shared_ptr<LabelOperand>& def) {
 	getAndCheckLexem(false);
 	LabelOperand nullLabel(0);
 	if (_currentLexem.type() == LexemType::kwcase || _currentLexem.type() == LexemType::kwdefault) { // 2_46
 		// T: I hope, that kwcase lexem include `default`
 		// 6W: well, it wasn't supposed. added recently
 		pushBackLexem();
-		auto q = p;
-		auto end1 = end;
+		const auto& q = p;
+		const auto& end1 = end;
 		auto def1 = ACase(scope, q, end1);
 		if (!def1) {
 			syntaxError("Error during syntax analysis on rule ACase");
@@ -994,8 +979,8 @@ bool Translator::Cases_(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<
 			syntaxError("Two default section");
 			return false;
 		} else def2 = def1 != nullptr && *def1 >= nullLabel ? def1 : def;
-		auto r = p;
-		auto end2 = end;
+		const auto& r = p;
+		const auto& end2 = end;
 		if (!Cases_(scope, r, end2, def2)) {
 			syntaxError("Error during syntax analysis on rule Cases_");
 			return false;
@@ -1010,7 +995,8 @@ bool Translator::Cases_(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<
 	return true;
 }
 
-std::shared_ptr<LabelOperand> Translator::ACase(Scope scope, std::shared_ptr<RValue> p, std::shared_ptr<LabelOperand> end) {
+std::shared_ptr<LabelOperand>
+Translator::ACase(Scope scope, const std::shared_ptr<RValue>& p, const std::shared_ptr<LabelOperand>& end) {
 	getAndCheckLexem(false, {LexemType::kwcase, LexemType::kwdefault});
 	if (_currentLexem.type() == LexemType::kwcase) {  // 2_48
 		getAndCheckLexem(false, {LexemType::num});
@@ -1044,7 +1030,7 @@ std::shared_ptr<LabelOperand> Translator::ACase(Scope scope, std::shared_ptr<RVa
 }
 
 bool Translator::IOp(Scope scope) {
-	getAndCheckLexem(false, { LexemType::id });		// 2_50
+	getAndCheckLexem(false, {LexemType::id});        // 2_50
 	auto name = _currentLexem.str();
 	getAndCheckLexem(false, {LexemType::semicolon});
 	auto p = checkVar(scope, name);
@@ -1053,7 +1039,7 @@ bool Translator::IOp(Scope scope) {
 }
 
 bool Translator::OOp(Scope scope) {
-	if (!OOp_(scope)) {	// 2_51
+	if (!OOp_(scope)) {    // 2_51
 		syntaxError("Error during syntax analysis on rule OOp_");
 		return false;
 	}
@@ -1064,11 +1050,11 @@ bool Translator::OOp(Scope scope) {
 bool Translator::OOp_(Scope scope) {
 	getAndCheckLexem(false);
 	if (_currentLexem.type() == LexemType::opnot ||
-		_currentLexem.type() == LexemType::lpar ||
-		_currentLexem.type() == LexemType::num ||
-		_currentLexem.type() == LexemType::chr ||
-		_currentLexem.type() == LexemType::opinc ||
-		_currentLexem.type() == LexemType::id) {	// 2_52
+	    _currentLexem.type() == LexemType::lpar ||
+	    _currentLexem.type() == LexemType::num ||
+	    _currentLexem.type() == LexemType::chr ||
+	    _currentLexem.type() == LexemType::opinc ||
+	    _currentLexem.type() == LexemType::id) {    // 2_52
 		pushBackLexem();
 		auto p = E(scope);
 		if (!p) {
@@ -1077,8 +1063,7 @@ bool Translator::OOp_(Scope scope) {
 		}
 		generateAtoms(scope, std::make_shared<OutAtom>(p));
 		return true;
-	}
-	else if (_currentLexem.type() == LexemType::str) {	// 2_53
+	} else if (_currentLexem.type() == LexemType::str) {    // 2_53
 		auto s = _currentLexem.str();
 		auto p = _stringTable.add(s);
 		generateAtoms(scope, std::make_shared<OutAtom>(p));

@@ -1,29 +1,63 @@
-(MOV, `1`,, 2[!temp1])
-(EQ, 0[a], 1[b], L0)
-(MOV, `0`,, 2[!temp1])
-(LBL,,, L0)
-(MUL, 2[!temp1], `3`, 3[!temp2])
-(SUB, `1`, `65`, 4[!temp3])
-(MUL, 5[c], `2`, 6[!temp4])
-(ADD, 4[!temp3], 6[!temp4], 7[!temp5])
-(MOV, 8[d],, 9[!temp6])
-(ADD, 8[d], `1`, 8[d])
-(SUB, 7[!temp5], 9[!temp6], 10[!temp7])
-(MOV, `1`,, 11[!temp8])
-(GT, 3[!temp2], 10[!temp7], L1)
-(MOV, `0`,, 11[!temp8])
-(LBL,,, L1)
+0	(MUL, 2[y], 2[y], 5[!temp1])
+0	(MUL, `4`, 1[x], 7[!temp3])
+0	(MUL, 7[!temp3], 3[z], 8[!temp4])
+0	(SUB, 5[!temp1], 8[!temp4], 6[!temp2])
+0	(MOV, 6[!temp2],, 4[result])
+0	(MOV, `1`,, 9[!temp5])
+0	(LT, 4[result], `0`, L2)
+0	(MOV, `0`,, 9[!temp5])
+0	(LBL,,, L2)
+0	(EQ, 9[!temp5], `0`, L0)
+0	(OUT,,, 0{No real roots\n})
+0	(JMP,,, L1)
+0	(LBL,,, L0)
+0	(MOV, `1`,, 10[!temp6])
+0	(EQ, 4[result], `0`, L5)
+0	(MOV, `0`,, 10[!temp6])
+0	(LBL,,, L5)
+0	(EQ, 10[!temp6], `0`, L3)
+0	(OUT,,, 1{One root\n})
+0	(JMP,,, L4)
+0	(LBL,,, L3)
+0	(OUT,,, 2{Two roots\n})
+0	(LBL,,, L4)
+0	(LBL,,, L1)
+0	(RET,,, 4[result])
+0	(RET,,, `0`)
+11	(IN,,, 12[a])
+11	(IN,,, 13[b])
+11	(IN,,, 14[c])
+11	(PARAM,,, 12[a])
+11	(PARAM,,, 13[b])
+11	(PARAM,,, 14[c])
+11	(CALL, 0[sqRoots],, 16[!temp7])
+11	(MOV, 16[!temp7],, 15[d])
+11	(RET,,, `0`)
+11	(RET,,, `0`)
 
-Symbol table:
-0	a
-1	b
-2	!temp1
-3	!temp2
-4	!temp3
-5	c
-6	!temp4
-7	!temp5
-8	d
-9	!temp6
-10	!temp7
-11	!temp8
+SYMBOL TABLE
+----------------------------------------------------------------
+code    name    kind    type    len     init    scope   offset
+0       sqRoots func    integer 3       0       -1      -1
+1       x       var     integer -1      0       0       -1
+2       y       var     integer -1      0       0       -1
+3       z       var     integer -1      0       0       -1
+4       result  var     integer -1      0       0       -1
+5       !temp1  var     integer -1      0       0       -1
+6       !temp2  var     integer -1      0       0       -1
+7       !temp3  var     integer -1      0       0       -1
+8       !temp4  var     integer -1      0       0       -1
+9       !temp5  var     integer -1      0       0       -1
+10      !temp6  var     integer -1      0       0       -1
+11      main    func    integer 0       0       -1      -1
+12      a       var     integer -1      0       11      -1
+13      b       var     integer -1      0       11      -1
+14      c       var     integer -1      0       11      -1
+15      d       var     integer -1      0       11      -1
+16      !temp7  var     integer -1      0       11      -1
+
+STRING TABLE:
+----------------------------------------------------------------
+0       No real roots\n
+1       One root\n
+2       Two roots\n
