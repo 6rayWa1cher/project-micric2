@@ -83,10 +83,12 @@ public:
 	Atom();
 
 	virtual std::string toString() const = 0;
+
+	virtual void generate(std::ostream& stream) const = 0;
 };
 
 class BinaryOpAtom : public Atom {
-private:
+protected:
 	std::string _name;
 	std::shared_ptr<RValue> _left;
 	std::shared_ptr<RValue> _right;
@@ -98,7 +100,21 @@ public:
 	             std::shared_ptr<MemoryOperand> result);
 
 	std::string toString() const override;
+
+	virtual void generateOperation(std::ostream& stream) const = 0;
+	void generate(std::ostream& stream) const override;
 };
+
+class SimpleBinaryOpAtom : public BinaryOpAtom {
+public:
+    void generateOperation(std::ostream& stream) const override;
+};
+
+class FnBinaryOpAtom : public BinaryOpAtom {
+public:
+    void generateOperation(std::ostream& stream) const override;
+};
+
 
 class UnaryOpAtom : public Atom {
 private:
@@ -111,6 +127,8 @@ public:
 	            std::shared_ptr<MemoryOperand> result);
 
 	std::string toString() const override;
+
+    void generate(std::ostream& stream) const override;
 };
 
 class OutAtom : public Atom {
@@ -120,6 +138,8 @@ public:
 	OutAtom(std::shared_ptr<Operand> value);
 
 	std::string toString() const override;
+
+    void generate(std::ostream& stream) const override;
 };
 
 class InAtom : public Atom {
@@ -129,6 +149,8 @@ public:
 	InAtom(std::shared_ptr<MemoryOperand> result);
 
 	std::string toString() const override;
+
+    void generate(std::ostream& stream) const override;
 };
 
 class LabelAtom : public Atom {
@@ -138,6 +160,8 @@ public:
 	LabelAtom(std::shared_ptr<LabelOperand> label);
 
 	std::string toString() const override;
+
+    void generate(std::ostream& stream) const override;
 };
 
 class JumpAtom : public Atom {
@@ -147,10 +171,12 @@ public:
 	JumpAtom(std::shared_ptr<LabelOperand> label);
 
 	std::string toString() const override;
+
+    void generate(std::ostream& stream) const override;
 };
 
 class ConditionalJumpAtom : public Atom {
-private:
+protected:
 	std::string _condition;
 	std::shared_ptr<RValue> _left;
 	std::shared_ptr<RValue> _right;
@@ -162,6 +188,20 @@ public:
 	                    std::shared_ptr<LabelOperand> label);
 
 	std::string toString() const override;
+
+	virtual void generateCondition(std::ostream& stream) const = 0;
+
+    void generate(std::ostream& stream) const override;
+};
+
+class SimpleJumpAtom : public ConditionalJumpAtom {
+public:
+    void generateCondition(std::ostream& stream) const;
+};
+
+class ComplexJumpAtom : public ConditionalJumpAtom {
+public:
+    void generateCondition(std::ostream& stream) const;
 };
 
 class CallAtom : public Atom {
@@ -172,6 +212,8 @@ public:
 	CallAtom(std::shared_ptr<MemoryOperand> function, std::shared_ptr<MemoryOperand> result);
 
 	std::string toString() const override;
+
+    void generateCondition(std::ostream& stream) const;
 };
 
 class RetAtom : public Atom {
@@ -181,6 +223,8 @@ public:
 	RetAtom(std::shared_ptr<RValue> value);
 
 	std::string toString() const override;
+
+    void generateCondition(std::ostream& stream) const;
 };
 
 class ParamAtom : public Atom {
@@ -190,6 +234,8 @@ public:
 	ParamAtom(std::shared_ptr<RValue> value);
 
 	std::string toString() const override;
+
+    void generateCondition(std::ostream& stream) const;
 };
 
 #endif //PROJECT_MICRIC2_ATOMS_H
