@@ -32,6 +32,42 @@ size_t SymbolTable::size() const {
 	return this->_records.size();
 }
 
+size_t SymbolTable::getM(Scope scope) const {
+    if (scope < 0 || scope >= _records.size()) return 0;
+    int64_t variableAmount = 0;
+    for (const auto & _record : _records) {
+        if (_record._scope == scope && _record._kind == TableRecord::RecordKind::var) variableAmount++;
+    }
+    return size_t(variableAmount - _records[scope]._len);
+}
+
+void SymbolTable::calculateOffset() {
+    int n, m, i;
+    TableRecord rec;
+    for (auto& _record : _records) {
+        rec = _record;
+        if (rec._kind == TableRecord::RecordKind::func) continue;
+        n = _records[rec._scope]._len;
+        m = getM(rec._scope);
+        i = 1;
+        for (auto& record : _records) {
+            if (record._kind == TableRecord::RecordKind::var && record._scope == rec._scope) {
+                if (i <= n) record._offset = 2 * (m + n + 1 - i);
+                else record._offset = 2 * (m + n - i);
+                i++;
+            }
+        }
+    }
+}
+
+std::vector<std::string> SymbolTable::functionNames() const {
+    std::vector<std::string> functions;
+    for (const auto& rec : _records) {
+        if (rec._kind == TableRecord::RecordKind::func) functions.push_back(rec._name);
+    }
+    return functions;
+}
+
 void printNSymbols(std::ostream& stream, size_t n, const std::string& s) {
 	for (size_t i = 0; i < n; i++) stream << s;
 }
@@ -187,4 +223,12 @@ void SymbolTable::changeFuncLength(const std::string& name, int newLen) {
 	if (it != _records.end()) {
 		it->_len = newLen;
 	}
+}
+
+void SymbolTable::generateGlobals(std::ostream &stream) const {
+    for(size_t i = 0; i < _records.size(); i++) {
+        if(_records[i]._scope == -1) {
+            stream << "var" + std::to_string(i) + ": DB " + std::to_string(_records[i]._init) + "\n";
+        }
+    }
 }

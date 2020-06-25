@@ -19,6 +19,8 @@ public:
 	std::shared_ptr<StringOperand> add(const std::string& name);
 
 	void printStringTable(std::ostream& stream);
+
+    void generateStrings(std::ostream& stream) const;
 };
 
 #endif //PROJECT_MICRIC2_STRINGTABLE_H

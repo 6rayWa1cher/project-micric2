@@ -398,7 +398,7 @@ TEST(TranslatorProgramTests, Grammar2_21_41_42_50_51_53) {
 	                                     "0\t(IN,,, 3[x])",
 	                                     "0\t(JMP,,, L1)",
 	                                     "0\t(LBL,,, L0)",
-	                                     "0\t(OUT,,, 0{abacaba})",
+	                                     "0\t(OUT,,, S0{abacaba})",
 	                                     "0\t(LBL,,, L1)",
 	                                     "0\t(RET,,, `1`)",
 	                                     "0\t(RET,,, `0`)"};

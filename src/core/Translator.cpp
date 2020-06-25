@@ -1083,6 +1083,7 @@ void Translator::startTranslation() {
 	if (_symbolTable.checkFunc("main", 0) == nullptr) {
 		syntaxError("A main function with 0 arguments expected, but it's not provided.");
 	}
+    this->_symbolTable.calculateOffset();
 }
 
 const SymbolTable& Translator::getSymbolTable() const {
@@ -1133,6 +1134,14 @@ std::shared_ptr<MemoryOperand> Translator::checkFunc(const std::string& name, in
 		return nullptr;
 	}
 	return out;
+}
+
+void Translator::saveRegs(std::ostream &stream) {
+    stream << "PUSH B\nPUSH D\n PUSH H\nPUSH PSW\n";
+}
+
+void Translator::loadRegs(std::ostream &stream) {
+    stream << "POP PSW\nPOP H\nPOP D\nPOP B\n";
 }
 
 

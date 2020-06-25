@@ -20,18 +20,18 @@ TEST(StringTableTests, Overall) {
 	auto string = "Hello world!";
 	std::shared_ptr<StringOperand> ptr = table.add(string);
 	ASSERT_FALSE(!ptr);
-	ASSERT_EQ(std::string("0"), ptr->toString());
+	ASSERT_EQ(std::string("S0"), ptr->toString());
 	ASSERT_EQ(string, table[0]);
 
-	ASSERT_EQ(std::string("0"), table.add(string)->toString());
+	ASSERT_EQ(std::string("S0"), table.add(string)->toString());
 
 	auto string2 = "Hello world again!";
 	std::shared_ptr<StringOperand> ptr2 = table.add(string2);
 	ASSERT_FALSE(!ptr2);
-	ASSERT_EQ(std::string("1"), ptr2->toString());
+	ASSERT_EQ(std::string("S1"), ptr2->toString());
 	ASSERT_EQ(string2, table[1]);
 
-	ASSERT_EQ(std::string("1"), table.add(string2)->toString());
+	ASSERT_EQ(std::string("S1"), table.add(string2)->toString());
 }
 
 TEST(StringTableTests, OverallFormatter) {
@@ -40,18 +40,18 @@ TEST(StringTableTests, OverallFormatter) {
 	auto string = "Hello world!";
 	std::shared_ptr<StringOperand> ptr = table.add(string);
 	ASSERT_FALSE(!ptr);
-	ASSERT_EQ(std::string("0{") + string + "}", ptr->toString());
+	ASSERT_EQ(std::string("S0{") + string + "}", ptr->toString());
 	ASSERT_EQ(string, table[0]);
 
-	ASSERT_EQ(std::string("0{") + string + "}", table.add(string)->toString());
+	ASSERT_EQ(std::string("S0{") + string + "}", table.add(string)->toString());
 
 	auto string2 = "Hello world again!";
 	std::shared_ptr<StringOperand> ptr2 = table.add(string2);
 	ASSERT_FALSE(!ptr2);
-	ASSERT_EQ(std::string("1{") + string2 + "}", ptr2->toString());
+	ASSERT_EQ(std::string("S1{") + string2 + "}", ptr2->toString());
 	ASSERT_EQ(string2, table[1]);
 
-	ASSERT_EQ(std::string("1{") + string2 + "}", table.add(string2)->toString());
+	ASSERT_EQ(std::string("S1{") + string2 + "}", table.add(string2)->toString());
 	GlobalParameters::getInstance().enableOperatorFormatter = false;
 }
 
@@ -190,12 +190,12 @@ TEST(AtomTests, StringOperand) {
 	auto string = "some string";
 	table.add(string);
 	StringOperand stringOperand(0, &table);
-	ASSERT_EQ(std::string("0"), stringOperand.toString());
+	ASSERT_EQ(std::string("S0"), stringOperand.toString());
 
 	auto string2 = "some string2";
 	table.add(string2);
 	StringOperand stringOperand2(1, &table);
-	ASSERT_EQ(std::string("1"), stringOperand2.toString());
+	ASSERT_EQ(std::string("S1"), stringOperand2.toString());
 }
 
 TEST(AtomTests, StringOperandFormatted) {
@@ -204,12 +204,12 @@ TEST(AtomTests, StringOperandFormatted) {
 	auto string = "some string";
 	table.add(string);
 	StringOperand stringOperand(0, &table);
-	ASSERT_EQ(std::string("0{") + string + "}", stringOperand.toString());
+	ASSERT_EQ(std::string("S0{") + string + "}", stringOperand.toString());
 
 	auto string2 = "some string2";
 	table.add(string2);
 	StringOperand stringOperand2(1, &table);
-	ASSERT_EQ(std::string("1{") + string2 + "}", stringOperand2.toString());
+	ASSERT_EQ(std::string("S1{") + string2 + "}", stringOperand2.toString());
 	GlobalParameters::getInstance().enableOperatorFormatter = false;
 }
 
@@ -723,6 +723,101 @@ TEST(TranslatorExceptionsTests, syntaxExpectedIdTest) {
 		ss << exception.what();
 	}
 	ASSERT_EQ(expected, ss.str());
+}
+
+TEST(SymbolTableTests, loadTest) {
+    SymbolTable table;
+    SymbolTable::TableRecord record;
+    record._name = "x";
+    record._init = 14;
+    record._kind = SymbolTable::TableRecord::RecordKind::var;
+    record._type = SymbolTable::TableRecord::RecordType::integer;
+    record._len = -1;
+    record._offset = -1;
+    record._scope = -1;
+    table._records.push_back(record);
+    record._name = "y";
+    record._init = 64;
+    record._kind = SymbolTable::TableRecord::RecordKind::var;
+    record._type = SymbolTable::TableRecord::RecordType::chr;
+    record._len = -1;
+    record._offset = 0;
+    record._scope = 2;
+    table._records.push_back(record);
+    auto x = std::make_shared<MemoryOperand>(0, &table);
+    auto y = std::make_shared<MemoryOperand>(1, &table);
+    auto z = std::make_shared<NumberOperand>(25565);
+    std::ostringstream ss;
+    x->load(ss);
+    ASSERT_EQ(ss.str(), "LDA var14\n");
+    std::ostringstream ss1;
+    y->load(ss1);
+    ASSERT_EQ(ss1.str(), "LXI H, 0\nDAD SP\nMOV A, M\n");
+    std::ostringstream ss2;
+    z->load(ss2);
+    ASSERT_EQ(ss2.str(), "MVI A, 25565\n");
+}
+
+TEST(SymbolTableTests, saveTest) {
+    SymbolTable table;
+    SymbolTable::TableRecord record;
+    record._name = "x";
+    record._init = 14;
+    record._kind = SymbolTable::TableRecord::RecordKind::var;
+    record._type = SymbolTable::TableRecord::RecordType::integer;
+    record._len = -1;
+    record._offset = -1;
+    record._scope = -1;
+    table._records.push_back(record);
+    record._name = "y";
+    record._init = 64;
+    record._kind = SymbolTable::TableRecord::RecordKind::var;
+    record._type = SymbolTable::TableRecord::RecordType::chr;
+    record._len = -1;
+    record._offset = 0;
+    record._scope = 2;
+    table._records.push_back(record);
+    auto x = std::make_shared<MemoryOperand>(0, &table);
+    auto y = std::make_shared<MemoryOperand>(1, &table);
+    std::ostringstream ss;
+    x->save(ss);
+    ASSERT_EQ(ss.str(), "STA var14\n");
+    std::ostringstream ss1;
+    y->save(ss1);
+    ASSERT_EQ(ss1.str(), "LXI H, 0\nDAD SP\nMOV M, A\n");
+}
+
+TEST(SymbolTableTests, generateGlobalsTest) {
+    SymbolTable table;
+    SymbolTable::TableRecord record;
+    record._name = "x";
+    record._init = 14;
+    record._kind = SymbolTable::TableRecord::RecordKind::var;
+    record._type = SymbolTable::TableRecord::RecordType::integer;
+    record._len = -1;
+    record._offset = -1;
+    record._scope = -1;
+    table._records.push_back(record);
+    record._name = "y";
+    record._init = 64;
+    record._kind = SymbolTable::TableRecord::RecordKind::var;
+    record._type = SymbolTable::TableRecord::RecordType::chr;
+    record._len = -1;
+    record._offset = 0;
+    record._scope = -1;
+    table._records.push_back(record);
+    std::ostringstream ss;
+    table.generateGlobals(ss);
+    ASSERT_EQ(ss.str(), "var0: DB 14\nvar1: DB 64\n");
+}
+
+TEST(SymbolTableTests, generateStringsTest) {
+    StringTable table;
+    table.add("Abacaba");
+    table.add("ABACABA");
+    std::ostringstream ss;
+    table.generateStrings(ss);
+    ASSERT_EQ(ss.str(), "str0: DB \'Abacaba\', 0\nstr1: DB \'ABACABA\', 0\n");
 }
 
 #pragma clang diagnostic pop

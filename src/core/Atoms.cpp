@@ -37,10 +37,36 @@ size_t MemoryOperand::index() const noexcept {
 	return this->_index;
 }
 
+void MemoryOperand::load(std::ostream& stream) const {
+    if (_symbolTable->_records[this->_index]._scope == -1) {
+        stream << "LDA var" + std::to_string(_symbolTable->_records[this->_index]._init) + "\n";
+    }
+    else {
+        stream << "LXI H, " + std::to_string(_symbolTable->_records[this->_index]._offset) + "\n";
+        stream << "DAD SP\n";
+        stream << "MOV A, M\n";
+    }
+}
+
+void MemoryOperand::save(std::ostream& stream) const {
+    if(_symbolTable->_records[this->_index]._scope == -1) {
+        stream << "STA var" + std::to_string(_symbolTable->_records[this->_index]._init) + "\n";
+    }
+    else {
+        stream << "LXI H, " + std::to_string(_symbolTable->_records[this->_index]._offset) + "\n";
+        stream << "DAD SP\n";
+        stream << "MOV M, A\n";
+    }
+}
+
 NumberOperand::NumberOperand(int value) : _value(value) {}
 
 std::string NumberOperand::toString() const {
 	return '`' + std::to_string(this->_value) + '`';
+}
+
+void NumberOperand::load(std::ostream &stream) const {
+    stream << "MVI A, " + std::to_string(this->_value) + "\n";
 }
 
 StringOperand::StringOperand(size_t index, const StringTable *stringTable) : _index(index),
@@ -48,9 +74,9 @@ StringOperand::StringOperand(size_t index, const StringTable *stringTable) : _in
 
 std::string StringOperand::toString() const {
 	if (GlobalParameters::getInstance().enableOperatorFormatter) {
-		return std::to_string(this->_index) + '{' + this->_stringTable->operator[](this->_index) + '}';
+		return "S" + std::to_string(this->_index) + '{' + this->_stringTable->operator[](this->_index) + '}';
 	} else {
-		return std::to_string(this->_index);
+		return "S" + std::to_string(this->_index);
 	}
 }
 

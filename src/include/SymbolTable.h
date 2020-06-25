@@ -41,13 +41,22 @@ public:
 	};
 
 private:
-	std::vector<TableRecord> _records;
 	int lastTemp = 0;
 
 public:
-	const std::string& operator[](const unsigned int index) const;
+    std::vector<TableRecord> _records;
+
+    const std::string& operator[](const unsigned int index) const;
 
 	size_t size() const;
+
+    size_t getM(Scope scope) const;
+
+    void calculateOffset();
+
+    std::vector<std::string> functionNames() const;
+
+    void generateGlobals(std::ostream& stream) const;
 
 	std::shared_ptr<MemoryOperand> addVar(const std::string& name,
 	                                      const Scope scope, TableRecord::RecordType type,

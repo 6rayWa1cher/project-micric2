@@ -32,3 +32,9 @@ void StringTable::printStringTable(std::ostream& stream) {
 		stream << i << "       " << _strings[i] << std::endl;
 	}
 }
+
+void StringTable::generateStrings(std::ostream &stream) const {
+    for(size_t i = 0; i < _strings.size(); i++) {
+        stream << "str" + std::to_string(i) + ": DB \'" + _strings[i] + "\', 0\n";
+    }
+}
