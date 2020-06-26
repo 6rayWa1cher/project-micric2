@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <sstream>
 #include <utility>
+#include "../include/GlobalParameters.h"
 
 
 Translator::Translator(std::istream& inputStream) : _scanner(Scanner(inputStream)) {
@@ -1084,6 +1085,7 @@ void Translator::startTranslation() {
 	if (_symbolTable.checkFunc("main", 0) == nullptr) {
 		syntaxError("A main function with 0 arguments expected, but it's not provided.");
 	}
+	_symbolTable.calculateOffset();
 }
 
 const SymbolTable& Translator::getSymbolTable() const {
@@ -1154,24 +1156,25 @@ void Translator::generateFunction(std::ostream &stream, const std::pair<std::str
     auto m = _symbolTable.getM(par.second);
     for(int i = 0; i < m; i++) stream << "PUSH B\n";
     for(const auto& atom : _atoms[par.second]) {
-        if(atom->toString()[1] == 'P') continue;
+//        if(atom->toString()[1] == 'P') continue;
 	    atom->generate(stream, this, par.second);
     }
 }
 
 void Translator::generateCode(std::ostream &stream) {
-    stream << "ASM 8080 code:" << std::endl;
-    for (size_t i = 0; i < 64; i++) stream << "-";
-    stream << std::endl;
-    _symbolTable.calculateOffset();
-    stream << "ORG 8000H\n";
-    _symbolTable.generateGlobals(stream);
-    _stringTable.generateStrings(stream);
-    generateProlog(stream);
-    auto funcs = _symbolTable.functionNames();
-    for(const auto& func : funcs) {
-	    generateFunction(stream, func);
-    }
+	if (GlobalParameters::getInstance().printAsmHeader) {
+		stream << "ASM 8080 code:" << std::endl;
+		for (size_t i = 0; i < 64; i++) stream << "-";
+		stream << std::endl;
+	}
+	stream << "ORG 8000H\n";
+	_symbolTable.generateGlobals(stream);
+	_stringTable.generateStrings(stream);
+	generateProlog(stream);
+	auto funcs = _symbolTable.functionNames();
+	for (const auto& func : funcs) {
+		generateFunction(stream, func);
+	}
 }
 
 TranslationException::TranslationException(std::string error) : _error(std::move(error)) {}

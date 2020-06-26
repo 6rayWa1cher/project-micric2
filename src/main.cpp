@@ -26,20 +26,22 @@ std::string getFullFilename(std::string string) {
 
 int main(int argc, char **argv) {
 	std::ifstream ifile;
-	std::string filename = R"(C:\Users\Throder\CLionProjects\project-micric2\test\resources\prog1.minic)", input, output; // STOP RENAMING FILENAME!
+	std::string filename = "prog.minic", input, output; // STOP RENAMING FILENAME!
 	int i = 1;
 	std::string selfName = getFullFilename(argv[0]);
 	if (argc == 2 && (std::string(argv[1]) == "-h" || std::string(argv[1]) == "--help")) {
 		std::cout << "Usage:" << std::endl
-		          << '\t' << selfName << "(input prog.minic, output prog.minic.atom)" << std::endl
+		          << '\t' << selfName << "(input prog.minic, output prog.minic.asm)" << std::endl
 		          << '\t' << selfName << " [options] [target]" << std::endl
 		          << '\t' << selfName << " [options] -i [target]" << std::endl
 		          << "Options:" << std::endl
 		          << '\t' << "-i file" << '\t' << "Set target file" << std::endl
 		          << '\t' << "-o file" << '\t' << "Set output file" << std::endl
+		          << '\t' << "-a" << '\t' << "Print atoms info (output will be .atom, not .asm)" << std::endl
 		          << '\t' << "-f" << '\t' << "Enable operator formatter (disabled by default)" << std::endl;
 		return 1;
 	}
+	bool printAtoms = false;
 	while (i < argc) {
 		input = std::string(argv[i]);
 		if (input == "-i") {
@@ -59,6 +61,10 @@ int main(int argc, char **argv) {
 		} else if (input == "-f") {
 			GlobalParameters::getInstance().enableOperatorFormatter = true;
 			++i;
+		} else if (input == "-a") {
+			printAtoms = true;
+			GlobalParameters::getInstance().printAsmHeader = true;
+			++i;
 		} else {
 			if (!input.empty())
 				filename = input;
@@ -72,13 +78,14 @@ int main(int argc, char **argv) {
 	}
 	std::cout << "Opened input: " << filename << std::endl;
 	std::ofstream ofile;
+	std::string extension = printAtoms ? ".atom" : ".asm";
 	if (output.empty()) {
-		ofile.open(filename + ".atom");
+		ofile.open(filename + extension);
 	} else {
 		ofile.open(output);
 	}
 	if (ofile) {
-		std::cout << "Opened output: " << (output.empty() ? filename + ".atom" : output) << std::endl;
+		std::cout << "Opened output: " << (output.empty() ? filename + extension : output) << std::endl;
 	}
 	if (!ofile && !output.empty()) {
 		std::cerr << "Failed to create output file" << std::endl;
@@ -88,12 +95,14 @@ int main(int argc, char **argv) {
 	try {
 		translator.startTranslation();
 		ifile.close();
-		translator.printAtoms(ofile);
-		ofile << std::endl;
-		translator.printSymbolTable(ofile);
-		ofile << std::endl;
-		translator.printStringTable(ofile);
-		ofile << std::endl;
+		if (printAtoms) {
+			translator.printAtoms(ofile);
+			ofile << std::endl;
+			translator.printSymbolTable(ofile);
+			ofile << std::endl;
+			translator.printStringTable(ofile);
+			ofile << std::endl;
+		}
 		translator.generateCode(ofile);
 		ofile.close();
 	} catch (TranslationException exception) {

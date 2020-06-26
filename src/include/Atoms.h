@@ -25,7 +25,7 @@ class RValue : public Operand {
 public:
 	RValue();
 
-    virtual void load(std::ostream& stream) const = 0;
+    virtual void load(std::ostream& stream, int additionalOffset) const = 0;
 };
 
 class MemoryOperand : public RValue {
@@ -40,9 +40,9 @@ public:
 
 	size_t index() const noexcept;
 
-    void load(std::ostream& stream) const override;
+	void load(std::ostream& stream, int additionalOffset) const override;
 
-    void save(std::ostream& stream) const;
+	void save(std::ostream& stream, int additionalOffset = 0) const;
 
 	bool operator==(const MemoryOperand& rhs) const;
 
@@ -57,7 +57,7 @@ public:
 
 	std::string toString() const override;
 
-    void load(std::ostream& stream) const override;
+	void load(std::ostream& stream, int) const override;
 };
 
 class StringOperand : public Operand {

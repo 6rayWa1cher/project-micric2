@@ -39,21 +39,21 @@ size_t MemoryOperand::index() const noexcept {
 	return this->_index;
 }
 
-void MemoryOperand::load(std::ostream& stream) const {
+void MemoryOperand::load(std::ostream& stream, int additionalOffset) const {
 	if (_symbolTable->_records[this->_index]._scope == -1) {
-		stream << "LDA var" + std::to_string(_symbolTable->_records[this->_index]._init) + "\n";
+		stream << "LDA var" + std::to_string(this->_index) + "\n";
 	} else {
-		stream << "LXI H, " + std::to_string(_symbolTable->_records[this->_index]._offset) + "\n";
+		stream << "LXI H, " + std::to_string(_symbolTable->_records[this->_index]._offset + additionalOffset) + "\n";
 		stream << "DAD SP\n";
 		stream << "MOV A, M\n";
 	}
 }
 
-void MemoryOperand::save(std::ostream& stream) const {
+void MemoryOperand::save(std::ostream& stream, int additionalOffset) const {
 	if (_symbolTable->_records[this->_index]._scope == -1) {
-		stream << "STA var" + std::to_string(_symbolTable->_records[this->_index]._init) + "\n";
+		stream << "STA var" + std::to_string(this->_index) + "\n";
 	} else {
-		stream << "LXI H, " + std::to_string(_symbolTable->_records[this->_index]._offset) + "\n";
+		stream << "LXI H, " + std::to_string(_symbolTable->_records[this->_index]._offset + additionalOffset) + "\n";
 		stream << "DAD SP\n";
 		stream << "MOV M, A\n";
 	}
@@ -65,7 +65,7 @@ std::string NumberOperand::toString() const {
 	return '`' + std::to_string(this->_value) + '`';
 }
 
-void NumberOperand::load(std::ostream& stream) const {
+void NumberOperand::load(std::ostream& stream, int) const {
 	stream << "MVI A, " + std::to_string(this->_value) + "\n";
 }
 
@@ -112,19 +112,23 @@ std::string BinaryOpAtom::toString() const {
 
 void BinaryOpAtom::generate(std::ostream& stream, Translator *translator, int scope) const {
 	stream << "\t; " + toString() + "\n";
-	_right->load(stream);
+	_right->load(stream, 0);
 	if (_name == "MUL" || _name == "DIV") {
 		stream << "MOV D, A\n";
 	} else {
 		stream << "MOV B, A\n";
 	}
-	_left->load(stream);
+	_left->load(stream, 0);
 	if (_name == "MUL") {
 		stream << "CALL @MULT\n";
 		stream << "MOV A, C\n";
 	} else if (_name == "DIV") {
 		stream << "CALL @DIV\n";
 		stream << "MOV A, C\n";
+	} else if (_name == "AND") {
+		stream << "ANA B\n";
+	} else if (_name == "OR") {
+		stream << "ORA B\n";
 	} else {
 		stream << _name + " B\n";
 	}
@@ -145,15 +149,17 @@ std::string UnaryOpAtom::toString() const {
 void UnaryOpAtom::generate(std::ostream& stream, Translator *translator, int scope) const {
 	stream << "\t; " + toString() + "\n";
 	if (_name == "MOV") {
-		_operand->load(stream);
+		_operand->load(stream, 0);
 		_result->save(stream);
 	} else if (_name == "NEG") {
-		_operand->load(stream);
+		_operand->load(stream, 0);
 		stream << "CMA\n";
 		stream << "INR A\n";
+		_result->save(stream);
 	} else if (_name == "NOT") {
-		_operand->load(stream);
+		_operand->load(stream, 0);
 		stream << "CMA\n";
+		_result->save(stream);
 	} else {
 		throw CodeGenerationException("Unexpected atom " + _name);
 	}
@@ -170,15 +176,15 @@ void OutAtom::generate(std::ostream& stream, Translator *translator, int scope) 
 	if (_value->toString()[0] == 'S') {
 		std::string buf;
 		for (auto x : _value->toString()) if (x != 'S') buf += x;
-		stream << "LXI A, str" + buf + "\n";
-		stream << "CALL @print\n";
+		stream << "LXI H, str" + buf + "\n";
+		stream << "CALL @PRINT\n";
 		return;
 	}
 	if (_value->toString()[0] == '`') {
-		std::dynamic_pointer_cast<NumberOperand>(_value)->load(stream);
-    }
+		std::dynamic_pointer_cast<NumberOperand>(_value)->load(stream, 0);
+	}
     else {
-        std::dynamic_pointer_cast<MemoryOperand>(_value)->load(stream);
+		std::dynamic_pointer_cast<MemoryOperand>(_value)->load(stream, 0);
     }
     stream << "OUT 1\n";
 }
@@ -234,27 +240,27 @@ std::string ConditionalJumpAtom::toString() const {
 void
 ConditionalJumpAtom::generate(std::ostream& stream, Translator *translator, int scope) const {        // TODO
 	stream << "\t; " + toString() + "\n";
-	_right->load(stream);
+	_right->load(stream, 0);
 	stream << "MOV B, A\n";
-	_left->load(stream);
+	_left->load(stream, 0);
 	stream << "CMP B\n";
 	if (_condition == "EQ") {
 		stream << "JZ LBL" << _label->toString() << '\n';
 	} else if (_condition == "NE") {
 		stream << "JNZ LBL" << _label->toString() << '\n';
 	} else if (_condition == "GT") {
-		stream << "JP LBL" << _label->toString() << '\n';
+		stream << "JM LBL" << _label->toString() << "A\n";
+		stream << "JNZ LBL" << _label->toString() << '\n';
+		stream << "LBL" << _label->toString() << "A:\n";
 	} else if (_condition == "LT") {
 		stream << "JM LBL" << _label->toString() << '\n';
 	} else if (_condition == "GE") {
 		stream << "JM LBL" << _label->toString() << "A\n";
 		stream << "JMP LBL" << _label->toString() << '\n';
-		// yes, i know, that NOP isn't necessary. NOP looks too good :)
-		stream << "LBL" << _label->toString() << "A: NOP";
+		stream << "LBL" << _label->toString() << "A:\n";
 	} else if (_condition == "LE") {
-		stream << "JP LBL" << _label->toString() << "A\n";
-		stream << "JMP LBL" << _label->toString() << '\n';
-		stream << "LBL" << _label->toString() << "A: NOP";
+		stream << "JM LBL" << _label->toString() << '\n';
+		stream << "JZ LBL" << _label->toString() << '\n';
 	} else {
 		throw CodeGenerationException("Unexpected condition " + _condition);
 	}
@@ -275,20 +281,26 @@ void CallAtom::generate(std::ostream& stream, Translator *translator, int scope)
 	stream << "PUSH B\n";
 	const SymbolTable& table = translator->getSymbolTable();
 	int n = table._records[_function->index()]._len;
-	for (const auto& param : translator->codeGenFuncArgs) {
+	auto& vector = translator->codeGenFuncArgs;
+	for (int i = 0; i < n; ++i) {
+		auto param = vector[vector.size() - (n - i)];
+		if (!param) {
+			throw CodeGenerationException("Not enough arguments for CALL: expected " +
+			                              std::to_string(n) + ", got " + std::to_string(i));
+		}
 		stream << "LXI B, 0\n";
-		param->load(stream);
+		param->load(stream, 12 + 2 * i);
 		stream << "MOV C, A\n";
 		stream << "PUSH B\n";
 	}
-	translator->codeGenFuncArgs.clear();
+	vector.erase(vector.end() - n, vector.end());
 	stream << "CALL " + table._records[_function->index()]._name + "\n";
 	for (int i = 0; i < n; i++) {
 		stream << "POP B\n";
 	}
 	stream << "POP B\n";
 	stream << "MOV A, B\n";
-	_result->save(stream);
+	_result->save(stream, 8);
 	loadRegs(stream);
 }
 
@@ -311,7 +323,7 @@ void RetAtom::generate(std::ostream& stream, Translator *translator, int scope) 
 	const SymbolTable& table = translator->getSymbolTable();
 	auto m = table.getM(scope);
 	auto res = 2 * (m + table._records[scope]._len + 1);
-	_value->load(stream);
+	_value->load(stream, 0);
 	stream << "LXI H, " + std::to_string(res) + "\n";
 	stream << "DAD SP\n";
 	stream << "MOV M, A\n";

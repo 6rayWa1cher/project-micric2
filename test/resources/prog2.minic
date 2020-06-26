@@ -1,0 +1,18 @@
+int g = 9;
+int abc(int a, int b) {
+   char c;
+   if (a + 4 > b && a <= b) {
+       out "anomaly";
+       a = a + 2;
+       return a;
+   } else {
+       g = g - 1;
+       return 91 * g;
+   }
+}
+int main() {
+   int a, b;
+   in a;
+   in b;
+   out abc(abc(a, b), !abc(a,b));
+}

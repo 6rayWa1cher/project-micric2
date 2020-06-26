@@ -3,12 +3,12 @@
 //
 
 #include <gtest/gtest.h>
-#include "../src/include/Atoms.h"
-#include "../src/include/SymbolTable.h"
-#include "../src/include/StringTable.h"
-#include "../src/include/Translator.h"
-#include "../src/include/GlobalParameters.h"
-#include "tools.h"
+#include "../../src/include/Atoms.h"
+#include "../../src/include/SymbolTable.h"
+#include "../../src/include/StringTable.h"
+#include "../../src/include/Translator.h"
+#include "../../src/include/GlobalParameters.h"
+#include "../tools.h"
 #include <sstream>
 
 #pragma clang diagnostic push
@@ -738,24 +738,24 @@ TEST(SymbolTableTests, loadTest) {
     table._records.push_back(record);
     record._name = "y";
     record._init = 64;
-    record._kind = SymbolTable::TableRecord::RecordKind::var;
-    record._type = SymbolTable::TableRecord::RecordType::chr;
-    record._len = -1;
-    record._offset = 0;
-    record._scope = 2;
-    table._records.push_back(record);
-    auto x = std::make_shared<MemoryOperand>(0, &table);
-    auto y = std::make_shared<MemoryOperand>(1, &table);
-    auto z = std::make_shared<NumberOperand>(25565);
-    std::ostringstream ss;
-    x->load(ss);
-    ASSERT_EQ(ss.str(), "LDA var14\n");
-    std::ostringstream ss1;
-    y->load(ss1);
-    ASSERT_EQ(ss1.str(), "LXI H, 0\nDAD SP\nMOV A, M\n");
-    std::ostringstream ss2;
-    z->load(ss2);
-    ASSERT_EQ(ss2.str(), "MVI A, 25565\n");
+	record._kind = SymbolTable::TableRecord::RecordKind::var;
+	record._type = SymbolTable::TableRecord::RecordType::chr;
+	record._len = -1;
+	record._offset = 0;
+	record._scope = 2;
+	table._records.push_back(record);
+	auto x = std::make_shared<MemoryOperand>(0, &table);
+	auto y = std::make_shared<MemoryOperand>(1, &table);
+	auto z = std::make_shared<NumberOperand>(25565);
+	std::ostringstream ss;
+	x->load(ss, 0);
+	ASSERT_EQ(ss.str(), "LDA var0\n");
+	std::ostringstream ss1;
+	y->load(ss1, 0);
+	ASSERT_EQ(ss1.str(), "LXI H, 0\nDAD SP\nMOV A, M\n");
+	std::ostringstream ss2;
+	z->load(ss2, 0);
+	ASSERT_EQ(ss2.str(), "MVI A, 25565\n");
 }
 
 TEST(SymbolTableTests, saveTest) {
@@ -771,20 +771,20 @@ TEST(SymbolTableTests, saveTest) {
     table._records.push_back(record);
     record._name = "y";
     record._init = 64;
-    record._kind = SymbolTable::TableRecord::RecordKind::var;
-    record._type = SymbolTable::TableRecord::RecordType::chr;
-    record._len = -1;
-    record._offset = 0;
-    record._scope = 2;
-    table._records.push_back(record);
-    auto x = std::make_shared<MemoryOperand>(0, &table);
-    auto y = std::make_shared<MemoryOperand>(1, &table);
-    std::ostringstream ss;
-    x->save(ss);
-    ASSERT_EQ(ss.str(), "STA var14\n");
-    std::ostringstream ss1;
-    y->save(ss1);
-    ASSERT_EQ(ss1.str(), "LXI H, 0\nDAD SP\nMOV M, A\n");
+	record._kind = SymbolTable::TableRecord::RecordKind::var;
+	record._type = SymbolTable::TableRecord::RecordType::chr;
+	record._len = -1;
+	record._offset = 0;
+	record._scope = 2;
+	table._records.push_back(record);
+	auto x = std::make_shared<MemoryOperand>(0, &table);
+	auto y = std::make_shared<MemoryOperand>(1, &table);
+	std::ostringstream ss;
+	x->save(ss);
+	ASSERT_EQ(ss.str(), "STA var0\n");
+	std::ostringstream ss1;
+	y->save(ss1);
+	ASSERT_EQ(ss1.str(), "LXI H, 0\nDAD SP\nMOV M, A\n");
 }
 
 TEST(SymbolTableTests, generateGlobalsTest) {

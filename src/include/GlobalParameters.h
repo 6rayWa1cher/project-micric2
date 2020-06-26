@@ -11,6 +11,7 @@ private:
 
 public:
 	bool enableOperatorFormatter = false;
+	bool printAsmHeader = false;
 
 	static GlobalParameters& getInstance();
 };
