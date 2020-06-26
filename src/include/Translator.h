@@ -24,6 +24,8 @@ protected:
 
 	size_t _labelCount;
 public:
+	std::vector<std::shared_ptr<RValue>> codeGenFuncArgs;
+
 	Translator(std::istream& inputStream);
 
 	virtual void startTranslation();
@@ -159,7 +161,16 @@ private:
 public:
 	TranslationException(std::string error);
 
-	const char *what() const noexcept;
+	const char *what() const noexcept override;
+};
+
+class CodeGenerationException : public std::exception {
+private:
+	std::string _error;
+public:
+	CodeGenerationException(std::string error);
+
+	const char *what() const noexcept override;
 };
 
 #endif //PROJECT_MICRIC2_TRANSLATOR_H

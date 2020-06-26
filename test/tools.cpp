@@ -3,6 +3,8 @@
 //
 
 #include "tools.h"
+
+#include <utility>
 #include "../src/include/GlobalParameters.h"
 
 std::vector<std::string> split(const std::string& string, char delimiter) {
@@ -61,4 +63,43 @@ getAtomsExpression(const std::string& s, std::vector<std::string> vars, const Sc
 		outVector.push_back(spliited[1]);
 	}
 	return outVector;
+}
+
+SymbolTable::TableRecord::RecordType SymbolTableBuilder::toRecordType(const std::string& recordType) {
+	if (recordType == "int")
+		return SymbolTable::TableRecord::RecordType::integer;
+	else if (recordType == "char")
+		return SymbolTable::TableRecord::RecordType::chr;
+	else
+		return SymbolTable::TableRecord::RecordType::unknown;
+}
+
+SymbolTableBuilder::SymbolTableBuilder() {
+	st = std::make_shared<SymbolTable>();
+	operands = std::vector<std::shared_ptr<MemoryOperand>>();
+}
+
+SymbolTableBuilder
+SymbolTableBuilder::withVar(const std::string& name, const std::string& recordType, int init, Scope scope) {
+	operands.push_back(st->addVar(name, scope, toRecordType(recordType), init));
+	return SymbolTableBuilder(st, operands);
+}
+
+SymbolTableBuilder SymbolTableBuilder::withFunc(const std::string& name, int len, const std::string& recordType) {
+	operands.push_back(st->addFunc(name, toRecordType(recordType), len));
+	return SymbolTableBuilder(st, operands);
+}
+
+SymbolTable SymbolTableBuilder::build() {
+	return *st;
+}
+
+SymbolTableBuilder::SymbolTableBuilder(std::shared_ptr<SymbolTable> symbolTable,
+                                       std::vector<std::shared_ptr<MemoryOperand>> operands) :
+		st(std::move(symbolTable)), operands(std::move(operands)) {
+}
+
+std::pair<std::shared_ptr<SymbolTable>, std::vector<std::shared_ptr<MemoryOperand>>> SymbolTableBuilder::buildPair() {
+	st->calculateOffset();
+	return {st, std::move(operands)};
 }
