@@ -40,10 +40,6 @@ size_t MemoryOperand::index() const noexcept {
 }
 
 void MemoryOperand::load(std::ostream& stream) const {
-	std::cout << _symbolTable << std::endl;
-	std::cout << _symbolTable->_records.size() << std::endl;
-	std::cout << this->_index << std::endl;
-	std::cout << _symbolTable->_records[this->_index]._name << std::endl;
 	if (_symbolTable->_records[this->_index]._scope == -1) {
 		stream << "LDA var" + std::to_string(_symbolTable->_records[this->_index]._init) + "\n";
 	} else {
@@ -169,17 +165,17 @@ std::string OutAtom::toString() const {
 	return "(OUT,,, " + _value->toString() + ")";
 }
 
-void OutAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, int scope) const {
-    stream << "\t; " + toString() + "\n";
-    if(_value->toString()[0] == 'S') {
-        std::string buf;
-        for(auto x : _value->toString()) if(x != 'S') buf += x;
-        stream << "LXI A, str" + buf + "\n";
-        stream << "CALL @print\n";
-        return;
-    }
-    if(_value->toString()[0] == '`') {
-        std::dynamic_pointer_cast<NumberOperand>(_value)->load(stream);
+void OutAtom::generate(std::ostream& stream, Translator *translator, int scope) const {
+	stream << "\t; " + toString() + "\n";
+	if (_value->toString()[0] == 'S') {
+		std::string buf;
+		for (auto x : _value->toString()) if (x != 'S') buf += x;
+		stream << "LXI A, str" + buf + "\n";
+		stream << "CALL @print\n";
+		return;
+	}
+	if (_value->toString()[0] == '`') {
+		std::dynamic_pointer_cast<NumberOperand>(_value)->load(stream);
     }
     else {
         std::dynamic_pointer_cast<MemoryOperand>(_value)->load(stream);

@@ -8,6 +8,7 @@
 #include "../src/include/Atoms.h"
 #include "../src/include/Translator.h"
 #include "tools.h"
+#include "../src/include/GlobalParameters.h"
 
 struct Variable {
 	std::string name;
@@ -55,6 +56,7 @@ public:
 };
 
 std::string printAtom(std::shared_ptr<Atom>& atom, Translator& translator, Scope scope = GLOBAL_SCOPE) {
+	GlobalParameters::getInstance().enableOperatorFormatter = false;
 	std::ostringstream oss;
 	atom->generate(oss, &translator, scope);
 	return oss.str();
@@ -87,7 +89,7 @@ TEST(CodeGenTests, AddAtomGlobal) {
 
 TEST(CodeGenTests, AddAtomLocal) {
 	std::istringstream iss;
-	std::pair<std::shared_ptr<SymbolTable>, std::vector<std::shared_ptr<MemoryOperand>>> p = SymbolTableBuilder()
+	auto p = SymbolTableBuilder()
 			.withFunc("f", 0)
 			.withVar("a", "int", 42, 0)
 			.withVar("b", "int", 12, 0)
