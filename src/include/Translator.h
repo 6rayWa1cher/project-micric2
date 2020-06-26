@@ -48,10 +48,6 @@ public:
 
 	std::string getLastLexemes();
 
-	void saveRegs(std::ostream& stream);
-
-	void loadRegs(std::ostream& stream);
-
 protected:
 
 	void getAndCheckLexeme(bool eofAcceptable = false, const std::vector<LexemType>& acceptableLexems = {});

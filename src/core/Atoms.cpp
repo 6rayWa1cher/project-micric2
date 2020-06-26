@@ -110,8 +110,28 @@ std::string BinaryOpAtom::toString() const {
 	       _result->toString() + ")";
 }
 
-void BinaryOpAtom::generate(std::ostream &stream) const {     // TODO
-
+void BinaryOpAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, int scope) const {
+    stream << "\t; " + toString() + "\n";
+    _right->load(stream);
+    if(_name == "MUL" || _name == "DIV") {
+        stream << "MOV D, A\n";
+    }
+    else {
+        stream << "MOV B, A\n";
+    }
+    _left->load(stream);
+    if(_name == "MUL") {
+        stream << "CALL @MULT\n";
+        stream << "MOV A, C\n";
+    }
+    else if(_name == "DIV"){
+        stream << "CALL @DIV\n";
+        stream << "MOV A, C\n";
+    }
+    else {
+        stream << _name + " B\n";
+    }
+    _result->save(stream);
 }
 
 UnaryOpAtom::UnaryOpAtom(std::string name,
@@ -125,8 +145,15 @@ std::string UnaryOpAtom::toString() const {
 	       _result->toString() + ")";
 }
 
-void UnaryOpAtom::generate(std::ostream &stream) const {        // TODO
+void UnaryOpAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, int scope) const {
+    stream << "\t; " + toString() + "\n";
+    if(_name == "MOV") {
+        _operand->load(stream);
+        _result->save(stream);
+    }
+    else {  // NEG TODO
 
+    }
 }
 
 OutAtom::OutAtom(std::shared_ptr<Operand> value) : _value(std::move(value)) {}
@@ -135,8 +162,22 @@ std::string OutAtom::toString() const {
 	return "(OUT,,, " + _value->toString() + ")";
 }
 
-void OutAtom::generate(std::ostream &stream) const {        // TODO
-
+void OutAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, int scope) const {
+    stream << "\t; " + toString() + "\n";
+    if(_value->toString()[0] == 'S') {
+        std::string buf;
+        for(auto x : _value->toString()) if(x != 'S') buf += x;
+        stream << "LXI A, str" + buf + "\n";
+        stream << "CALL @print\n";
+        return;
+    }
+    if(_value->toString()[0] == '\'') {
+        std::dynamic_pointer_cast<NumberOperand>(_value)->load(stream);
+    }
+    else {
+        std::dynamic_pointer_cast<MemoryOperand>(_value)->load(stream);
+    }
+    stream << "OUT 1\n";
 }
 
 InAtom::InAtom(std::shared_ptr<MemoryOperand> result) : _result(std::move(result)) {}
@@ -145,8 +186,10 @@ std::string InAtom::toString() const {
 	return "(IN,,, " + _result->toString() + ")";
 }
 
-void InAtom::generate(std::ostream &stream) const {         // TODO
-
+void InAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, int scope) const {
+    stream << "\t; " << toString() + "\n";
+    stream << "IN 0\n";
+    _result->save(stream);
 }
 
 LabelAtom::LabelAtom(std::shared_ptr<LabelOperand> label) : _label(std::move(label)) {}
@@ -155,8 +198,9 @@ std::string LabelAtom::toString() const {
 	return "(LBL,,, " + _label->toString() + ")";
 }
 
-void LabelAtom::generate(std::ostream &stream) const {      // TODO
-
+void LabelAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, int scope) const {
+    stream << "\t; " + toString() + "\n";
+    stream << "LBL" + _label->toString() + ":\n";
 }
 
 JumpAtom::JumpAtom(std::shared_ptr<LabelOperand> label) : _label(std::move(label)) {}
@@ -165,8 +209,9 @@ std::string JumpAtom::toString() const {
 	return "(JMP,,, " + _label->toString() + ")";
 }
 
-void JumpAtom::generate(std::ostream &stream) const {       // TODO
-
+void JumpAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, int scope) const {
+    stream << "\t; " + toString() + "\n";
+    stream << "JMP LBL" + _label->toString() + "\n";
 }
 
 ConditionalJumpAtom::ConditionalJumpAtom(std::string condition,
@@ -183,7 +228,7 @@ std::string ConditionalJumpAtom::toString() const {
 	       _label->toString() + ")";
 }
 
-void ConditionalJumpAtom::generate(std::ostream &stream) const {
+void ConditionalJumpAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, int scope) const {        // TODO
 
 }
 
@@ -195,8 +240,34 @@ std::string CallAtom::toString() const {
 	return "(CALL, " + _function->toString() + ",, " + _result->toString() + ")";
 }
 
-void CallAtom::generateCondition(std::ostream &stream) const {      //TODO
+void CallAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, int scope) const {
+    stream << "\t; " + toString() + "\n";
+    saveRegs(stream);
+    stream << "LXI B, 0\n";
+    stream << "PUSH B\n";
+    int n = symbolTable->_records[_function->index()]._len;
+    for(int i = int(n + _function->index()); i > _function->index(); i--) {
+        stream << "LXI B, 0\n";
+        std::make_shared<MemoryOperand>(i, symbolTable)->load(stream);
+        stream << "MOV C, A\n";
+        stream << "PUSH B\n";
+    }
+    stream << "CALL " + symbolTable->_records[_function->index()]._name + "\n";
+    for(int i = 0; i < n; i++) {
+        stream << "POP B\n";
+    }
+    stream << "POP B\n";
+    stream << "MOV A, B\n";
+    _result->save(stream);
+    loadRegs(stream);
+}
 
+void CallAtom::saveRegs(std::ostream &stream) {
+    stream << "PUSH B\nPUSH D\n PUSH H\nPUSH PSW\n";
+}
+
+void CallAtom::loadRegs(std::ostream &stream) {
+    stream << "POP PSW\nPOP H\nPOP D\nPOP B\n";
 }
 
 RetAtom::RetAtom(std::shared_ptr<RValue> value) : _value(std::move(value)) {}
@@ -205,8 +276,16 @@ std::string RetAtom::toString() const {
 	return "(RET,,, " + _value->toString() + ")";
 }
 
-void RetAtom::generateCondition(std::ostream &stream) const {       //TODO
-
+void RetAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, int scope) const {       //TODO
+    stream << "\t; " + toString() + "\n";
+    auto m = symbolTable->getM(scope);
+    auto res = 2 * (m + symbolTable->_records[scope]._len + 1);
+    _value->load(stream);
+    stream << "LXI H, " + std::to_string(res) + "\n";
+    stream << "DAD SP\n";
+    stream << "MOV M, A\n";
+    for(int i = 0; i < m; i++) stream << "POP B\n";
+    stream << "RET\n";
 }
 
 ParamAtom::ParamAtom(std::shared_ptr<RValue> value) : _value(std::move(value)) {}
@@ -215,22 +294,10 @@ std::string ParamAtom::toString() const {
 	return "(PARAM,,, " + _value->toString() + ")";
 }
 
-void ParamAtom::generateCondition(std::ostream &stream) const {     //TODO
+void ParamAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, int scope) const {
 
 }
 
-void SimpleBinaryOpAtom::generateOperation(std::ostream &stream) const {    // ADD, SUB, AND, OR
 
-}
 
-void FnBinaryOpAtom::generateOperation(std::ostream &stream) const {        // MUL, DIV
 
-}
-
-void SimpleJumpAtom::generateCondition(std::ostream &stream) const {        // EQ, NE, GT, LT
-
-}
-
-void ComplexJumpAtom::generateCondition(std::ostream &stream) const {       // GE, LE
-
-}

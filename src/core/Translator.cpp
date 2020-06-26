@@ -1136,15 +1136,6 @@ std::shared_ptr<MemoryOperand> Translator::checkFunc(const std::string& name, in
 	return out;
 }
 
-void Translator::saveRegs(std::ostream &stream) {
-    stream << "PUSH B\nPUSH D\n PUSH H\nPUSH PSW\n";
-}
-
-void Translator::loadRegs(std::ostream &stream) {
-    stream << "POP PSW\nPOP H\nPOP D\nPOP B\n";
-}
-
-
 TranslationException::TranslationException(std::string error) : _error(std::move(error)) {}
 
 const char *TranslationException::what() const noexcept {

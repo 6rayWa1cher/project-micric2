@@ -29,9 +29,10 @@ public:
 class MemoryOperand : public RValue {
 protected:
 	size_t _index;
-	const SymbolTable *_symbolTable;
+    const SymbolTable *_symbolTable;
+
 public:
-	MemoryOperand(size_t index, const SymbolTable *symbolTable);
+    MemoryOperand(size_t index, const SymbolTable *symbolTable);
 
 	std::string toString() const override;
 
@@ -84,7 +85,7 @@ public:
 
 	virtual std::string toString() const = 0;
 
-	virtual void generate(std::ostream& stream) const = 0;
+	virtual void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const = 0;
 };
 
 class BinaryOpAtom : public Atom {
@@ -101,18 +102,7 @@ public:
 
 	std::string toString() const override;
 
-	virtual void generateOperation(std::ostream& stream) const = 0;
-	void generate(std::ostream& stream) const override;
-};
-
-class SimpleBinaryOpAtom : public BinaryOpAtom {
-public:
-    void generateOperation(std::ostream& stream) const override;
-};
-
-class FnBinaryOpAtom : public BinaryOpAtom {
-public:
-    void generateOperation(std::ostream& stream) const override;
+	void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
 };
 
 
@@ -128,7 +118,7 @@ public:
 
 	std::string toString() const override;
 
-    void generate(std::ostream& stream) const override;
+    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
 };
 
 class OutAtom : public Atom {
@@ -139,7 +129,7 @@ public:
 
 	std::string toString() const override;
 
-    void generate(std::ostream& stream) const override;
+    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
 };
 
 class InAtom : public Atom {
@@ -150,7 +140,7 @@ public:
 
 	std::string toString() const override;
 
-    void generate(std::ostream& stream) const override;
+    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
 };
 
 class LabelAtom : public Atom {
@@ -161,7 +151,7 @@ public:
 
 	std::string toString() const override;
 
-    void generate(std::ostream& stream) const override;
+    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
 };
 
 class JumpAtom : public Atom {
@@ -172,7 +162,7 @@ public:
 
 	std::string toString() const override;
 
-    void generate(std::ostream& stream) const override;
+    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
 };
 
 class ConditionalJumpAtom : public Atom {
@@ -189,31 +179,24 @@ public:
 
 	std::string toString() const override;
 
-	virtual void generateCondition(std::ostream& stream) const = 0;
-
-    void generate(std::ostream& stream) const override;
-};
-
-class SimpleJumpAtom : public ConditionalJumpAtom {
-public:
-    void generateCondition(std::ostream& stream) const;
-};
-
-class ComplexJumpAtom : public ConditionalJumpAtom {
-public:
-    void generateCondition(std::ostream& stream) const;
+    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
 };
 
 class CallAtom : public Atom {
 private:
 	std::shared_ptr<MemoryOperand> _function;
 	std::shared_ptr<MemoryOperand> _result;
+
+    static void saveRegs(std::ostream& stream);
+
+    static void loadRegs(std::ostream& stream);
 public:
 	CallAtom(std::shared_ptr<MemoryOperand> function, std::shared_ptr<MemoryOperand> result);
 
 	std::string toString() const override;
 
-    void generateCondition(std::ostream& stream) const;
+    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
+
 };
 
 class RetAtom : public Atom {
@@ -224,7 +207,7 @@ public:
 
 	std::string toString() const override;
 
-    void generateCondition(std::ostream& stream) const;
+    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
 };
 
 class ParamAtom : public Atom {
@@ -235,7 +218,7 @@ public:
 
 	std::string toString() const override;
 
-    void generateCondition(std::ostream& stream) const;
+    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
 };
 
 #endif //PROJECT_MICRIC2_ATOMS_H
