@@ -229,7 +229,7 @@ void SymbolTable::changeFuncLength(const std::string& name, int newLen) {
 
 void SymbolTable::generateGlobals(std::ostream &stream) const {
     for(size_t i = 0; i < _records.size(); i++) {
-        if(_records[i]._scope == -1) {
+        if(_records[i]._scope == -1 && _records[i]._kind != SymbolTable::TableRecord::RecordKind::func) {
             stream << "var" + std::to_string(i) + ": DB " + std::to_string(_records[i]._init) + "\n";
         }
     }

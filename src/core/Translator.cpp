@@ -1163,7 +1163,7 @@ void Translator::generateCode(std::ostream &stream) {
     for (size_t i = 0; i < 64; i++) stream << "-";
     stream << std::endl;
     _symbolTable.calculateOffset();
-    stream << "ORH 8000H\n";
+    stream << "ORG 8000H\n";
     _symbolTable.generateGlobals(stream);
     _stringTable.generateStrings(stream);
     generateProlog(stream);
