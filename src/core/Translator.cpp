@@ -1154,7 +1154,6 @@ void Translator::generateFunction(std::ostream &stream, const std::pair<std::str
     auto m = _symbolTable.getM(par.second);
     for(int i = 0; i < m; i++) stream << "PUSH B\n";
     for(const auto& atom : _atoms[par.second]) {
-        if(atom->toString()[1] == 'P') continue;
 	    atom->generate(stream, this, par.second);
     }
 }

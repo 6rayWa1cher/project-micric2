@@ -272,11 +272,11 @@ void CallAtom::generate(std::ostream& stream, Translator *translator, int scope)
 	stream << "PUSH B\n";
 	const SymbolTable& table = translator->getSymbolTable();
 	int n = table._records[_function->index()]._len;
-	for (const auto& param : translator->codeGenFuncArgs) {
-		stream << "LXI B, 0\n";
-		param->load(stream);
-		stream << "MOV C, A\n";
-		stream << "PUSH B\n";
+	for(int i = int(translator->codeGenFuncArgs.size()) - 1; i >= 0; i--) {
+        stream << "LXI B, 0\n";
+        translator->codeGenFuncArgs[i]->load(stream);
+        stream << "MOV C, A\n";
+        stream << "PUSH B\n";
 	}
 	translator->codeGenFuncArgs.clear();
 	stream << "CALL " + table._records[_function->index()]._name + "\n";
