@@ -171,7 +171,7 @@ void OutAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, int
         stream << "CALL @print\n";
         return;
     }
-    if(_value->toString()[0] == '\'') {
+    if(_value->toString()[0] == '`') {
         std::dynamic_pointer_cast<NumberOperand>(_value)->load(stream);
     }
     else {
@@ -246,8 +246,8 @@ void CallAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, in
     saveRegs(stream);
     stream << "LXI B, 0\n";
     stream << "PUSH B\n";
-    int n = symbolTable->_records[_function->index()]._len;
-    for(int i = int(n + _function->index()); i > _function->index(); i--) {
+    int n = symbolTable->_records[_function->index()]._len + 1;
+    for(int i = _function->index() + 1; i < _function->index() + n; i++) {
         stream << "LXI B, 0\n";
         std::make_shared<MemoryOperand>(i, symbolTable)->load(stream);
         stream << "MOV C, A\n";
@@ -264,7 +264,7 @@ void CallAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, in
 }
 
 void CallAtom::saveRegs(std::ostream &stream) {
-    stream << "PUSH B\nPUSH D\n PUSH H\nPUSH PSW\n";
+    stream << "PUSH B\nPUSH D\nPUSH H\nPUSH PSW\n";
 }
 
 void CallAtom::loadRegs(std::ostream &stream) {
