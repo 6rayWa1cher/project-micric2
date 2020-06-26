@@ -165,17 +165,14 @@ std::string OutAtom::toString() const {
 	return "(OUT,,, " + _value->toString() + ")";
 }
 
-void OutAtom::generate(std::ostream& stream, Translator *translator, int scope) const {
-	stream << "\t; " + toString() + "\n";
-	if (_value->toString()[0] == 'S') {
-		std::string buf;
-		for (auto x : _value->toString()) if (x != 'S') buf += x;
-		stream << "LXI A, str" + buf + "\n";
-		stream << "CALL @print\n";
-		return;
-	}
-	if (_value->toString()[0] == '`') {
-		std::dynamic_pointer_cast<NumberOperand>(_value)->load(stream);
+void OutAtom::generate(std::ostream &stream, Translator *translator, int scope) const {
+    stream << "\t; " + toString() + "\n";
+    if(_value->toString()[0] == 'S') {
+        std::string buf;
+        for(auto x : _value->toString()) if(x != 'S') buf += x;
+        stream << "LXI A, str" + buf + "\n";
+        stream << "CALL @print\n";
+        return;
     }
     else {
         std::dynamic_pointer_cast<MemoryOperand>(_value)->load(stream);
