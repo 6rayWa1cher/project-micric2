@@ -14,6 +14,7 @@
 
 TEST(CodeGenTests, Integration1) {
 	GlobalParameters::getInstance().enableOperatorFormatter = false;
+	GlobalParameters::getInstance().printAsmHeader = true;
 	std::istringstream iss(
 			"int g = 9;"
 			"int abc(int a, int b) {"
