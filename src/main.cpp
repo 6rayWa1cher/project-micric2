@@ -93,6 +93,8 @@ int main(int argc, char **argv) {
 		translator.printSymbolTable(ofile);
 		ofile << std::endl;
 		translator.printStringTable(ofile);
+		ofile << std::endl;
+		translator.generateCode(ofile);
 		ofile.close();
 	} catch (TranslationException exception) {
 		std::cerr << "Exception during compiling:" << std::endl;

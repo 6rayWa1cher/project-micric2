@@ -152,7 +152,7 @@ void UnaryOpAtom::generate(std::ostream &stream, const SymbolTable *symbolTable,
         _result->save(stream);
     }
     else {  // NEG TODO
-
+        stream << "|NEG ATOM|\n";
     }
 }
 
@@ -229,7 +229,8 @@ std::string ConditionalJumpAtom::toString() const {
 }
 
 void ConditionalJumpAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, int scope) const {        // TODO
-
+    stream << "\t; " + toString() + "\n";
+    stream << "|COND JUMP ATOM|\n";
 }
 
 CallAtom::CallAtom(std::shared_ptr<MemoryOperand> function,
@@ -276,7 +277,7 @@ std::string RetAtom::toString() const {
 	return "(RET,,, " + _value->toString() + ")";
 }
 
-void RetAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, int scope) const {       //TODO
+void RetAtom::generate(std::ostream &stream, const SymbolTable *symbolTable, int scope) const {
     stream << "\t; " + toString() + "\n";
     auto m = symbolTable->getM(scope);
     auto res = 2 * (m + symbolTable->_records[scope]._len + 1);

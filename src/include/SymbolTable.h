@@ -54,7 +54,7 @@ public:
 
     void calculateOffset();
 
-    std::vector<std::string> functionNames() const;
+    std::vector<std::pair<std::string, int>> functionNames() const;
 
     void generateGlobals(std::ostream& stream) const;
 

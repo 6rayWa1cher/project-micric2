@@ -1083,7 +1083,6 @@ void Translator::startTranslation() {
 	if (_symbolTable.checkFunc("main", 0) == nullptr) {
 		syntaxError("A main function with 0 arguments expected, but it's not provided.");
 	}
-    this->_symbolTable.calculateOffset();
 }
 
 const SymbolTable& Translator::getSymbolTable() const {
@@ -1134,6 +1133,44 @@ std::shared_ptr<MemoryOperand> Translator::checkFunc(const std::string& name, in
 		return nullptr;
 	}
 	return out;
+}
+
+void Translator::generateProlog(std::ostream &stream) {
+    stream << "ORG 0\n";
+    stream << "LXI H, 0\n";
+    stream << "SPHL\n";
+    stream << "CALL main\n";
+    stream << "END\n";
+    stream << "@MULT:\n";
+    stream << "; Code for MULT library function\n";
+    stream << "@PRINT:\n";
+    stream << "; Code for PRINT library function\n";
+}
+
+void Translator::generateFunction(std::ostream &stream, const std::pair<std::string, int>& par) {
+    stream << "\n" + par.first + ":\n";
+    stream << "LXI B, 0\n";
+    auto m = _symbolTable.getM(par.second);
+    for(int i = 0; i < m; i++) stream << "PUSH B\n";
+    for(const auto& atom : _atoms[par.second]) {
+        if(atom->toString()[1] == 'P') continue;
+        atom->generate(stream, &_symbolTable, par.second);
+    }
+}
+
+void Translator::generateCode(std::ostream &stream) {
+    stream << "ASM 8080 code:" << std::endl;
+    for (size_t i = 0; i < 64; i++) stream << "-";
+    stream << std::endl;
+    _symbolTable.calculateOffset();
+    stream << "ORH 8000H\n";
+    _symbolTable.generateGlobals(stream);
+    _stringTable.generateStrings(stream);
+    generateProlog(stream);
+    auto funcs = _symbolTable.functionNames();
+    for(const auto& func : funcs) {
+        generateFunction(stream, func);
+    }
 }
 
 TranslationException::TranslationException(std::string error) : _error(std::move(error)) {}

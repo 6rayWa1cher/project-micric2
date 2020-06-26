@@ -60,10 +60,12 @@ void SymbolTable::calculateOffset() {
     }
 }
 
-std::vector<std::string> SymbolTable::functionNames() const {
-    std::vector<std::string> functions;
-    for (const auto& rec : _records) {
-        if (rec._kind == TableRecord::RecordKind::func) functions.push_back(rec._name);
+std::vector<std::pair<std::string, int>> SymbolTable::functionNames() const {
+    std::vector<std::pair<std::string, int>> functions;
+    for (int i = 0; i < _records.size(); i++) {
+        if (_records[i]._kind == TableRecord::RecordKind::func) {
+            functions.emplace_back(_records[i]._name, i);
+        }
     }
     return functions;
 }

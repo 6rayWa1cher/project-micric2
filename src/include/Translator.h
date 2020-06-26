@@ -28,6 +28,12 @@ public:
 
 	virtual void startTranslation();
 
+	static void generateProlog(std::ostream& stream);
+
+	void generateFunction(std::ostream& stream, const std::pair<std::string, int>& par);
+
+	void generateCode(std::ostream& stream);
+
 	const SymbolTable& getSymbolTable() const;
 
 	const StringTable& getStringTable() const;
