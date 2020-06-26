@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <sstream>
+#include <utility>
 
 
 Translator::Translator(std::istream& inputStream) : _scanner(Scanner(inputStream)) {
@@ -1154,7 +1155,7 @@ void Translator::generateFunction(std::ostream &stream, const std::pair<std::str
     for(int i = 0; i < m; i++) stream << "PUSH B\n";
     for(const auto& atom : _atoms[par.second]) {
         if(atom->toString()[1] == 'P') continue;
-        atom->generate(stream, &_symbolTable, par.second);
+	    atom->generate(stream, this, par.second);
     }
 }
 
@@ -1169,7 +1170,7 @@ void Translator::generateCode(std::ostream &stream) {
     generateProlog(stream);
     auto funcs = _symbolTable.functionNames();
     for(const auto& func : funcs) {
-        generateFunction(stream, func);
+	    generateFunction(stream, func);
     }
 }
 
@@ -1177,4 +1178,12 @@ TranslationException::TranslationException(std::string error) : _error(std::move
 
 const char *TranslationException::what() const noexcept {
 	return _error.c_str();
+}
+
+const char *CodeGenerationException::what() const noexcept {
+	return _error.c_str();
+}
+
+CodeGenerationException::CodeGenerationException(std::string error) : _error(std::move(error)) {
+
 }

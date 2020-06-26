@@ -15,43 +15,6 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "cert-err58-cpp"
 
-class SymbolTableBuilder {
-private:
-	std::shared_ptr<SymbolTable> st;
-
-	explicit SymbolTableBuilder(std::shared_ptr<SymbolTable> symbolTable) : st(std::move(symbolTable)) {
-	}
-
-	static SymbolTable::TableRecord::RecordType toRecordType(const std::string& recordType) {
-		if (recordType == "int")
-			return SymbolTable::TableRecord::RecordType::integer;
-		else if (recordType == "char")
-			return SymbolTable::TableRecord::RecordType::chr;
-		else
-			return SymbolTable::TableRecord::RecordType::unknown;
-	}
-
-public:
-	SymbolTableBuilder() {
-		st = std::make_shared<SymbolTable>();
-	};
-
-	SymbolTableBuilder
-	withVar(const std::string& name, const std::string& recordType, int init = 0, const Scope scope = GLOBAL_SCOPE) {
-		st->addVar(name, scope, toRecordType(recordType), init);
-
-		return SymbolTableBuilder(st);
-	}
-
-	SymbolTableBuilder withFunc(const std::string& name, int len = 0, const std::string& recordType = "int") {
-		st->addFunc(name, toRecordType(recordType), len);
-		return SymbolTableBuilder(st);
-	}
-
-	SymbolTable build() {
-		return *st;
-	}
-};
 
 class LocalTranslator : public Translator {
 public:

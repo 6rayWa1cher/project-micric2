@@ -12,6 +12,8 @@ class SymbolTable;
 
 class StringTable;
 
+class Translator;
+
 class Operand {
 public:
 	Operand();
@@ -85,7 +87,7 @@ public:
 
 	virtual std::string toString() const = 0;
 
-	virtual void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const = 0;
+	virtual void generate(std::ostream& stream, Translator *translator, int scope) const = 0;
 };
 
 class BinaryOpAtom : public Atom {
@@ -102,7 +104,7 @@ public:
 
 	std::string toString() const override;
 
-	void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
+	void generate(std::ostream& stream, Translator *translator, int scope) const override;
 };
 
 
@@ -118,7 +120,7 @@ public:
 
 	std::string toString() const override;
 
-    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
+	void generate(std::ostream& stream, Translator *translator, int scope) const override;
 };
 
 class OutAtom : public Atom {
@@ -129,7 +131,7 @@ public:
 
 	std::string toString() const override;
 
-    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
+	void generate(std::ostream& stream, Translator *translator, int scope) const override;
 };
 
 class InAtom : public Atom {
@@ -140,7 +142,7 @@ public:
 
 	std::string toString() const override;
 
-    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
+	void generate(std::ostream& stream, Translator *translator, int scope) const override;
 };
 
 class LabelAtom : public Atom {
@@ -151,7 +153,7 @@ public:
 
 	std::string toString() const override;
 
-    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
+	void generate(std::ostream& stream, Translator *translator, int scope) const override;
 };
 
 class JumpAtom : public Atom {
@@ -162,7 +164,7 @@ public:
 
 	std::string toString() const override;
 
-    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
+	void generate(std::ostream& stream, Translator *translator, int scope) const override;
 };
 
 class ConditionalJumpAtom : public Atom {
@@ -179,7 +181,7 @@ public:
 
 	std::string toString() const override;
 
-    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
+	void generate(std::ostream& stream, Translator *translator, int scope) const override;
 };
 
 class CallAtom : public Atom {
@@ -195,7 +197,7 @@ public:
 
 	std::string toString() const override;
 
-    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
+	void generate(std::ostream& stream, Translator *translator, int scope) const override;
 
 };
 
@@ -207,7 +209,7 @@ public:
 
 	std::string toString() const override;
 
-    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
+	void generate(std::ostream& stream, Translator *translator, int scope) const override;
 };
 
 class ParamAtom : public Atom {
@@ -218,7 +220,7 @@ public:
 
 	std::string toString() const override;
 
-    void generate(std::ostream& stream, const SymbolTable *symbolTable, int scope) const override;
+	void generate(std::ostream& stream, Translator *translator, int scope) const override;
 };
 
 #endif //PROJECT_MICRIC2_ATOMS_H
