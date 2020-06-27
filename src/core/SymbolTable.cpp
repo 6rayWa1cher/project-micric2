@@ -46,7 +46,7 @@ void SymbolTable::calculateOffset() {
     TableRecord rec;
     for (auto& _record : _records) {
         rec = _record;
-        if (rec._kind == TableRecord::RecordKind::func) continue;
+        if (rec._kind == TableRecord::RecordKind::func || rec._scope == -1) continue;
         n = _records[rec._scope]._len;
         m = getM(rec._scope);
         i = 1;

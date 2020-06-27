@@ -300,7 +300,7 @@ void CallAtom::generate(std::ostream& stream, Translator *translator, int scope)
 	}
 	stream << "POP B\n";
 	stream << "MOV A, B\n";
-	_result->save(stream, 8);
+	_result->save(stream, 10);
 	loadRegs(stream);
 }
 
